@@ -172,7 +172,6 @@ namespace artslam::laser3d {
             pcl::PointCloud<Point3I>::Ptr cloud(new pcl::PointCloud<Point3I>());
             pcl::fromROSMsg(*cloud_msg, *cloud);
             cloud->header.seq = count_;
-            count_++;
 
             cloud->header.stamp = cloud_msg->header.stamp.toNSec();
             prefilterer_->update_raw_pointcloud_observer(cloud);
