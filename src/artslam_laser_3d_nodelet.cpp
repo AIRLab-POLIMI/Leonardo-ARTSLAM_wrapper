@@ -1,47 +1,15 @@
-/*
- * Copyright (c) 2009, Willow Garage, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Willow Garage, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
 #include <pluginlib/class_list_macros.h>
 #include <nodelet/nodelet.h>
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
-#include <stdio.h>
 #include <prefilterer.h>
+#include <iostream>
 
 #include <filesystem>
 #include <execution>
-#include <algorithm>
 #include <artslam_io/pointcloud_io.h>
-#include <artslam_io/kitti_reader.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <artslam_utils/types_converter.h>
 #include "registration.h"
 #include "tracker.h"
 #include "ground_detector.h"
@@ -54,11 +22,9 @@
 #include <configuration_parser.cpp>
 #include <backend_handler.cpp>
 #include <artslam_laser_3d_wrapper/OfflineSLAM.h>
-#include <graph_handler.h>
 
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
-#include <geographic_msgs/GeoPointStamped.h>
 #include <tf_conversions/tf_eigen.h>
 #include <tf/transform_listener.h>
 
@@ -68,17 +34,17 @@ namespace artslam::laser3d {
         ArtslamLaserWrapper() : value_(0) {}
 
     private:
-        void get_filepaths(const std::string &path, const std::string &extension, std::vector<std::string> &filepaths) {
-            for (const auto &p: std::filesystem::directory_iterator(path)) {
-                if (p.is_regular_file()) {
-                    if (p.path().extension().string() == extension) {
-                        filepaths.emplace_back(p.path());
-                    }
-                }
-            }
-
-            std::sort(std::execution::par_unseq, filepaths.begin(), filepaths.end());
-        }
+//        void get_filepaths(const std::string &path, const std::string &extension, std::vector<std::string> &filepaths) {
+//            for (const auto &p: std::filesystem::directory_iterator(path)) {
+//                if (p.is_regular_file()) {
+//                    if (p.path().extension().string() == extension) {
+//                        filepaths.emplace_back(p.path());
+//                    }
+//                }
+//            }
+//
+//            std::sort(std::execution::par_unseq, filepaths.begin(), filepaths.end());
+//        }
 
         virtual void onInit() {
             private_nh = getPrivateNodeHandle();
@@ -93,6 +59,8 @@ namespace artslam::laser3d {
 
             private_nh.getParam("configuration_file", config_file_);
             private_nh.getParam("results_path", results_path_);
+
+            _outfile.open(results_path_+"/timestamps.txt", std::ios::out);
 
             // prefilterer
             Prefilterer::Configuration prefilterer_configuration = artslam::laser3d::parse_prefilterer_configuration(config_file_);
@@ -143,58 +111,58 @@ namespace artslam::laser3d {
                           artslam_laser_3d_wrapper::OfflineSLAM::Request &res) {
             backend_handler_->save_results(results_path_);
             return true;
-            std::vector<std::string> slam_paths = parse_slam_paths(config_file_);
-
-            std::vector<std::string> pointclouds_filepaths;
-            get_filepaths(slam_paths[0], ".bin", pointclouds_filepaths);
-
-            std::vector<std::string> oxts_filepaths;
-            get_filepaths(slam_paths[2], ".txt", oxts_filepaths);
-
-            artslam::core::io::KITTI_Reader kitti_reader({false, boost::log::trivial::trace});
-            std::vector<uint64_t> timestamps, oxts_timestamps;
-            kitti_reader.read_timestamps(slam_paths[1], timestamps);
-            kitti_reader.read_timestamps(slam_paths[3], oxts_timestamps);
-
-            // load immediately all IMU and GNSS data
-            for (int i = 0; i < oxts_filepaths.size(); i++) {
-                IMU3D_MSG::Ptr imu3d_msg = kitti_reader.read_imu(oxts_filepaths[i]);
-                imu3d_msg->header_.frame_id_ = "";
-                imu3d_msg->header_.sequence_ = i;
-                imu3d_msg->header_.timestamp_ = oxts_timestamps[i];
-                //prefilterer.update_raw_imu_observer(imu3d_msg);
-                //backend_handler.update_raw_imu_observer(imu3d_msg);
-
-                GeoPointStamped_MSG::Ptr gnss_msg = kitti_reader.read_gps(oxts_filepaths[i]);
-                gnss_msg->header_.frame_id_ = "";
-                gnss_msg->header_.sequence_ = i;
-                gnss_msg->header_.timestamp_ = oxts_timestamps[i];
-                //backend_handler.update_raw_gnss_observer(gnss_msg);
-            }
-
-            for (int i = 0; i < 200; i++) {
-                pcl::PointCloud<Point3I>::Ptr pointcloud = kitti_reader.read_pointcloud(pointclouds_filepaths[i]);
-                pointcloud->header.frame_id = "";
-                pointcloud->header.seq = i;
-                pointcloud->header.stamp = timestamps[i];
-
-                prefilterer_->update_raw_pointcloud_observer(pointcloud);
-                usleep(100000);
-            }
-
-            sleep(5);
-
-            backend_handler_->save_results(results_path_);
-
-            std::cout << "[END] Size: " << pointclouds_filepaths.size() << std::endl;
-            std::cout << "[END] Prefilterer: " << prefilterer_->total_time_ << " - " << prefilterer_->count_ << std::endl;
-            std::cout << "[END] Tracker: " << tracker_->total_time_ << " - " << tracker_->count_ << std::endl;
-            std::cout << "[END] GroundDetector: " << ground_detector_->total_time_ << " - " << ground_detector_->count_ << std::endl;
-            std::cout << "[END] LoopDetector: " << loop_detector_->total_time_ << " - " << loop_detector_->count_ << std::endl;
-            std::cout << "[END] GraphHandler: " << graph_handler_->total_time_ << " - " << graph_handler_->count_ << std::endl;
-            std::cout << "[END] BackendHandler: " << backend_handler_->total_time_ << " - " << backend_handler_->count_ << std::endl;
-
-            return true;
+//            std::vector<std::string> slam_paths = parse_slam_paths(config_file_);
+//
+//            std::vector<std::string> pointclouds_filepaths;
+//            get_filepaths(slam_paths[0], ".bin", pointclouds_filepaths);
+//
+//            std::vector<std::string> oxts_filepaths;
+//            get_filepaths(slam_paths[2], ".txt", oxts_filepaths);
+//
+//            artslam::core::io::KITTI_Reader kitti_reader({false, boost::log::trivial::trace});
+//            std::vector<uint64_t> timestamps, oxts_timestamps;
+//            kitti_reader.read_timestamps(slam_paths[1], timestamps);
+//            kitti_reader.read_timestamps(slam_paths[3], oxts_timestamps);
+//
+//            // load immediately all IMU and GNSS data
+//            for (int i = 0; i < oxts_filepaths.size(); i++) {
+//                IMU3D_MSG::Ptr imu3d_msg = kitti_reader.read_imu(oxts_filepaths[i]);
+//                imu3d_msg->header_.frame_id_ = "";
+//                imu3d_msg->header_.sequence_ = i;
+//                imu3d_msg->header_.timestamp_ = oxts_timestamps[i];
+//                //prefilterer.update_raw_imu_observer(imu3d_msg);
+//                //backend_handler.update_raw_imu_observer(imu3d_msg);
+//
+//                GeoPointStamped_MSG::Ptr gnss_msg = kitti_reader.read_gps(oxts_filepaths[i]);
+//                gnss_msg->header_.frame_id_ = "";
+//                gnss_msg->header_.sequence_ = i;
+//                gnss_msg->header_.timestamp_ = oxts_timestamps[i];
+//                //backend_handler.update_raw_gnss_observer(gnss_msg);
+//            }
+//
+//            for (int i = 0; i < 200; i++) {
+//                pcl::PointCloud<Point3I>::Ptr pointcloud = kitti_reader.read_pointcloud(pointclouds_filepaths[i]);
+//                pointcloud->header.frame_id = "";
+//                pointcloud->header.seq = i;
+//                pointcloud->header.stamp = timestamps[i];
+//
+//                prefilterer_->update_raw_pointcloud_observer(pointcloud);
+//                usleep(100000);
+//            }
+//
+//            sleep(5);
+//
+//            backend_handler_->save_results(results_path_);
+//
+//            std::cout << "[END] Size: " << pointclouds_filepaths.size() << std::endl;
+//            std::cout << "[END] Prefilterer: " << prefilterer_->total_time_ << " - " << prefilterer_->count_ << std::endl;
+//            std::cout << "[END] Tracker: " << tracker_->total_time_ << " - " << tracker_->count_ << std::endl;
+//            std::cout << "[END] GroundDetector: " << ground_detector_->total_time_ << " - " << ground_detector_->count_ << std::endl;
+//            std::cout << "[END] LoopDetector: " << loop_detector_->total_time_ << " - " << loop_detector_->count_ << std::endl;
+//            std::cout << "[END] GraphHandler: " << graph_handler_->total_time_ << " - " << graph_handler_->count_ << std::endl;
+//            std::cout << "[END] BackendHandler: " << backend_handler_->total_time_ << " - " << backend_handler_->count_ << std::endl;
+//
+//            return true;
         }
 
         void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& cloud_msg) {
@@ -205,11 +173,12 @@ namespace artslam::laser3d {
             pcl::PointCloud<Point3I>::Ptr cloud(new pcl::PointCloud<Point3I>());
             pcl::fromROSMsg(*cloud_msg, *cloud);
             cloud->header.seq = count_;
-            count_++;
 
-            // TODO check if header timestamp is in mus or ns
-            cloud->header.stamp *= 1000;
+            cloud->header.stamp = cloud_msg->header.stamp.toNSec();
             prefilterer_->update_raw_pointcloud_observer(cloud);
+
+            _outfile<<cloud->header.stamp<<" "<<count_<<std::endl;
+            count_++;
         }
 
         void imu_callback(const sensor_msgs::ImuPtr& imu_msg) {
@@ -229,9 +198,10 @@ namespace artslam::laser3d {
             try {
                 tf_listener_.transformVector("base_link", acc_imu, acc_base);
                 tf_listener_.transformQuaternion("base_link", quat_imu, quat_base);
-            } catch(std::exception& e) {
-                std::cerr << "failed to find imu transform!!" << std::endl;
-                return;
+            }
+            catch (tf::TransformException &ex) {
+                    std::cerr << ex.what() << std::endl;
+                    return;
             }
 
             IMU3D_MSG::Ptr conv_imu_msg(new IMU3D_MSG);
@@ -290,6 +260,7 @@ namespace artslam::laser3d {
         double value_;
         int count_ = 0;
         ros::ServiceServer service_;
+        std::ofstream _outfile;
 
         // SLAM building blocks
         std::shared_ptr<Prefilterer> prefilterer_;
