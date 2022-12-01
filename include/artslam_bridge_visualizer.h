@@ -42,25 +42,28 @@
 #include <tf2_ros/transform_listener.h>
 
 
-namespace artslam::laser3d
+namespace artslam
 {
-    /**
-     * ARTSLAMBridgeVisualizer
-     *
-     * Class module in charge of interacting with ARTSLAM observers with respect to the SLAM-Output
-     * (i.e. Map and Poses) through the "SlamOutputObserver" and to the Filtered Pointcloud through the
-     * "FilteredPointcloudObserver".
-     * This interaction with the ARTSLAM architecture is due to the visual monitoring task of this class which
-     * acts as a bridge between ARTSLAM and ROS through a Visualizer tool such as Rviz or Fox Glove Studio.
-     */
-    class ARTSLAMBridgeVisualizer : public FilteredPointcloudObserver, public SlamOutputObserver
+    namespace laser3d
     {
-        // Constants
-        const std::string MODULE_ID = "VisualizerBridgeDispatcher";
-        const std::string TOPIC_ROOT = "/artslam_wrapper";
-        const std::string POSE_TOPIC = TOPIC_ROOT + "/pose";
-        const std::string POINTCLOUD_TOPIC = TOPIC_ROOT + "/pointcloud";
-        const std::string MARKER_TOPIC = TOPIC_ROOT + "/marker";
+        /**
+         * ARTSLAMBridgeVisualizer
+         *
+         * Class module in charge of interacting with ARTSLAM observers with respect to the SLAM-Output
+         * (i.e. Map and Poses) through the "SlamOutputObserver" and to the Filtered Pointcloud through the
+         * "FilteredPointcloudObserver".
+         * This interaction with the ARTSLAM architecture is due to the visual monitoring task of this class which
+         * acts as a bridge between ARTSLAM and ROS through a Visualizer tool such as Rviz or Fox Glove Studio.
+         */
+        class ARTSLAMBridgeVisualizer :
+                public FilteredPointcloudObserver,
+                public SlamOutputObserver {
+            // Constants
+            const std::string MODULE_ID = "VisualizerBridgeDispatcher";
+            const std::string TOPIC_ROOT = "/artslam_wrapper";
+            const std::string POSE_TOPIC = TOPIC_ROOT + "/pose";
+            const std::string POINTCLOUD_TOPIC = TOPIC_ROOT + "/pointcloud";
+            const std::string MARKER_TOPIC = TOPIC_ROOT + "/marker";
 
         public:
             /* Attributes ------------------------------------------------------------------------------------------- */
@@ -76,14 +79,14 @@ namespace artslam::laser3d
             explicit ARTSLAMBridgeVisualizer(ros::NodeHandle &nh);
 
             // Setter
-            void set_handler(ros::NodeHandle &nh) {handler = nh;};
+            void set_handler(ros::NodeHandle &nh) { handler = nh; };
 
             // Observer updating interfaces
             void update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
 
             void update_slam_output_observer(
-                pcl::PointCloud<Point3I>::Ptr map,
-                std::vector <Eigen::Isometry3d> poses
+                    pcl::PointCloud<Point3I>::Ptr map,
+                    std::vector <Eigen::Isometry3d> poses
             ) override;
 
         private:
@@ -103,16 +106,17 @@ namespace artslam::laser3d
             // Drawing method to refresh rviz or foxglove-studio
             void draw_pointcloud(const pcl::PointCloud<Point3I>::ConstPtr &pointcloud);
 
-            void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map,std::vector <EigIsometry3d> poses);
+            void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector <EigIsometry3d> poses);
 
             // Matrix transformation util
             geometry_msgs::TransformStamped matrix2transform(
-                const ros::Time &stamp,
-                const Eigen::Matrix4f &pose,
-                const std::string &frame_id,
-                const std::string &child_frame_id
+                    const ros::Time &stamp,
+                    const Eigen::Matrix4f &pose,
+                    const std::string &frame_id,
+                    const std::string &child_frame_id
             );
-    };
+        };
+    }
 }
 
 #endif // ARTSLAM_BRIDGE_VISUALIZER_H

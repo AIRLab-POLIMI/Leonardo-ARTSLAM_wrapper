@@ -16,7 +16,7 @@
 #include "graph_handler.h"
 #include "information_matrix_calculator.h"
 #include "loop_detector.h"
-#include "artslam_bridge_visualizer.h"
+#include "../include/artslam_bridge_visualizer.h"
 #include "graph_handler.h"
 #include <backend_handler.h>
 #include <configuration_parser.cpp>
@@ -29,33 +29,21 @@
 #include <tf/transform_listener.h>
 
 namespace artslam::laser3d {
-    class ArtslamLaserWrapper : public nodelet::Nodelet {
+    class ARTSLAMController : public nodelet::Nodelet {
     public:
-        ArtslamLaserWrapper() : value_(0) {}
+        ARTSLAMController() : value_(0) {}
 
     private:
-//        void get_filepaths(const std::string &path, const std::string &extension, std::vector<std::string> &filepaths) {
-//            for (const auto &p: std::filesystem::directory_iterator(path)) {
-//                if (p.is_regular_file()) {
-//                    if (p.path().extension().string() == extension) {
-//                        filepaths.emplace_back(p.path());
-//                    }
-//                }
-//            }
-//
-//            std::sort(std::execution::par_unseq, filepaths.begin(), filepaths.end());
-//        }
-
         virtual void onInit() {
             private_nh = getPrivateNodeHandle();
             mt_nh = getMTNodeHandle();
             private_nh.getParam("value", value_);
             pub = private_nh.advertise<std_msgs::Float64>("out", 10);
             map_pub = mt_nh.advertise<sensor_msgs::PointCloud2>("/hdl_graph_slam/map_points", 1, true);
-            cloud_sub_ = mt_nh.subscribe("/velodyne_points", 64, &ArtslamLaserWrapper::cloud_callback, this);
-            imu_sub_ = mt_nh.subscribe("/imu_data", 1024, &ArtslamLaserWrapper::imu_callback, this);
-            gnss_sub_ = mt_nh.subscribe("/gnss_data", 1024, &ArtslamLaserWrapper::gnss_callback, this);
-            service_ = private_nh.advertiseService("OfflineSLAM", &ArtslamLaserWrapper::offline_slam, this);
+            cloud_sub_ = mt_nh.subscribe("/velodyne_points", 64, &ARTSLAMController::cloud_callback, this);
+            imu_sub_ = mt_nh.subscribe("/imu_data", 1024, &ARTSLAMController::imu_callback, this);
+            gnss_sub_ = mt_nh.subscribe("/gnss_data", 1024, &ARTSLAMController::gnss_callback, this);
+            service_ = private_nh.advertiseService("OfflineSLAM", &ARTSLAMController::offline_slam, this);
 
             private_nh.getParam("configuration_file", config_file_);
             private_nh.getParam("results_path", results_path_);
@@ -279,5 +267,5 @@ namespace artslam::laser3d {
         ARTSLAMBridgeVisualizer visualization_wrapper_;
     };
 
-    PLUGINLIB_EXPORT_CLASS(artslam::laser3d::ArtslamLaserWrapper, nodelet::Nodelet)
+    PLUGINLIB_EXPORT_CLASS(artslam::laser3d::ARTSLAMController, nodelet::Nodelet)
 }

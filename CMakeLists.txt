@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
-project(artslam_laser_3d_wrapper)
+project(artslam_wrapper)
 
 # set the default path for built executables to the "bin" directory of the project
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -70,7 +70,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS src
-  LIBRARIES artslam_laser_3d_wrapper
+  LIBRARIES artslam_wrapper
   CATKIN_DEPENDS artslam_core ndt_omp fast_gicp nodelet artslam_laser_3d
 )
 
@@ -259,12 +259,12 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_library(artslam_laser_3d_nodelet src/artslam_laser_3d_nodelet.cpp src/artslam_bridge_visualizer.cpp)
-target_link_libraries(artslam_laser_3d_nodelet
+add_library(artslam_controller src/artslam_controller.cpp src/artslam_bridge_visualizer.cpp)
+target_link_libraries(artslam_controller
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         ${Boost_LOG_LIBRARIES}
         ${Boost_LOG_SETUP_LIBRARIES}
         tbb
         )
-add_dependencies(artslam_laser_3d_nodelet ${catkin_EXPORTED_TARGETS})
+add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS})
