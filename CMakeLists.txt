@@ -260,7 +260,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_library(artslam_laser_3d_nodelet src/artslam_laser_3d_nodelet.cpp src/visualizer_bridge.cpp)
+add_library(artslam_laser_3d_nodelet src/artslam_laser_3d_nodelet.cpp src/artslam_bridge_visualizer.cpp)
 target_link_libraries(artslam_laser_3d_nodelet
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}

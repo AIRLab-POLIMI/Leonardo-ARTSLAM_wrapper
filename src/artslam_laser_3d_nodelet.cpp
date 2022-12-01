@@ -48,7 +48,7 @@
 #include "graph_handler.h"
 #include "information_matrix_calculator.h"
 #include "loop_detector.h"
-#include "visualizer_bridge.h"
+#include "artslam_bridge_visualizer.h"
 #include "graph_handler.h"
 #include <backend_handler.h>
 #include <configuration_parser.cpp>
@@ -129,7 +129,7 @@ namespace artslam::laser3d {
             backend_handler_->set_loop_detector(loop_detector_.get());
 
             // visualization wrapper
-            visualization_wrapper_.set_handle(mt_nh);
+            visualization_wrapper_.set_handler(mt_nh);
 
             // SLAM pipeline construction
             prefilterer_->register_filtered_pointcloud_observer(tracker_.get());
@@ -305,7 +305,7 @@ namespace artslam::laser3d {
         std::string results_path_;
 
         // nodelet elements
-        VisualizerBridge visualization_wrapper_;
+        ARTSLAMBridgeVisualizer visualization_wrapper_;
     };
 
     PLUGINLIB_EXPORT_CLASS(artslam::laser3d::ArtslamLaserWrapper, nodelet::Nodelet)
