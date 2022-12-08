@@ -259,12 +259,17 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_library(artslam_controller src/artslam_controller.cpp src/artslam_bridge_visualizer.cpp)
-target_link_libraries(artslam_controller
+add_library(
+        artslam_controller
+        src/controller/artslam_controller.cpp
+        src/bridge/artslam_bridge_visualizer.cpp
+)
+target_link_libraries(
+        artslam_controller
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         ${Boost_LOG_LIBRARIES}
         ${Boost_LOG_SETUP_LIBRARIES}
         tbb
-        )
+)
 add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS})
