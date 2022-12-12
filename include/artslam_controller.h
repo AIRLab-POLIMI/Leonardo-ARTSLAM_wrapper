@@ -43,7 +43,7 @@
 #include <std_msgs/Float64.h>
 
 // ROS service
-#include <artslam_laser_3d_wrapper/OfflineSLAM.h>  // <------------------------------- // TODO: change name
+#include <artslam_wrapper/OfflineSLAM.h>  // <------------------------------- // TODO: change name
 
 // PCL libraries
 #include <pcl_conversions/pcl_conversions.h>
@@ -77,10 +77,12 @@ namespace artslam
                 ARTSLAMController();
                 void onInit();
                 void startKernel(std::string config_file, std::string results_path);
-                bool offline_slam(artslam_laser_3d_wrapper::OfflineSLAM::Request &req,
-                                  artslam_laser_3d_wrapper::OfflineSLAM::Request &res);
+                bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
+                                  artslam_wrapper::OfflineSLAM::Request &res);
 
             private:
+                void get_filepaths(const std::string &path, const std::string &extension, std::vector<std::string> &filepaths);
+
                 /* Attributes --------------------------------------------------------------------------------------- */
                 ros::NodeHandle mt_nh;
                 ros::NodeHandle private_nh;

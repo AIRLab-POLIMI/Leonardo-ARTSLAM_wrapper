@@ -23,12 +23,13 @@
  */
 
 // Header library
-#include "../../include/artslam_bridge_visualizer.h"
+#include "artslam_bridge_visualizer.h"
 
 // ROS Messages libraries
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 // TFs libraries
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -54,6 +55,7 @@ namespace artslam
             markers_pub = handler.advertise<visualization_msgs::MarkerArray>(MARKER_TOPIC, 16);
             pointcloud_pub = handler.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, 1);
             pose_pub = handler.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC, 10);
+            occgrid_map_pub = handler.advertise<nav_msgs::OccupancyGrid>(OCCUPANCYGRID_TOPIC, 1);
 
             // Initial TF configuration message map->odom
             geometry_msgs::TransformStamped init_msg;
@@ -83,6 +85,7 @@ namespace artslam
             markers_pub = handler.advertise<visualization_msgs::MarkerArray>(MARKER_TOPIC, 16);
             pointcloud_pub = handler.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, 1);
             pose_pub = handler.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC, 10);
+            occgrid_map_pub = handler.advertise<nav_msgs::OccupancyGrid>(OCCUPANCYGRID_TOPIC, 1);
 
             // Initial TF configuration message map->odom
             geometry_msgs::TransformStamped init_msg;
@@ -114,11 +117,12 @@ namespace artslam
          */
         void ARTSLAMBridgeVisualizer::update_slam_output_observer(
             pcl::PointCloud<Point3I>::Ptr map,
-            std::vector<Eigen::Isometry3d> poses)
+            std::vector<Eigen::Isometry3d> poses,
+            OccupancyGrid::Ptr occupancy_grid)
         {
             // sending map and poses to the visualizer through the dispatcher
             std::cout << "update_slam_output_observer" << std::endl;
-            dispatcher->dispatch([this, map, poses]{draw_map_and_poses(map, poses);});
+            dispatcher->dispatch([this, map, poses, occupancy_grid]{draw_map_and_poses(map, poses, occupancy_grid);});
         }
 
         /**
@@ -149,7 +153,8 @@ namespace artslam
          * @param poses Poses to be displayed.
          */
         void ARTSLAMBridgeVisualizer::draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map,
-                                                         std::vector<EigIsometry3d> poses)
+                                                         std::vector<EigIsometry3d> poses,
+                                                         OccupancyGrid::Ptr occupancy_grid)
         {
             // pointcloud message
             sensor_msgs::PointCloud2Ptr pointcloud_msg(new sensor_msgs::PointCloud2());
@@ -157,6 +162,28 @@ namespace artslam
             pcl::toROSMsg(*map, *pointcloud_msg);
             pointcloud_msg->header.frame_id = "map";
             pointcloud_pub.publish(pointcloud_msg);
+
+            // occupancy grid message
+            nav_msgs::OccupancyGridPtr occupancy_grid_msg(new nav_msgs::OccupancyGrid());
+            occupancy_grid_msg->header.frame_id = "map";
+            occupancy_grid_msg->header.seq = 0;
+            occupancy_grid_msg->header.stamp = pointcloud_msg->header.stamp;
+            occupancy_grid_msg->info.resolution = occupancy_grid->resolution_;
+            occupancy_grid_msg->info.width = occupancy_grid->width_;
+            occupancy_grid_msg->info.height = occupancy_grid->height_;
+            EigIsometry3d occupancy_grid_origin = occupancy_grid->initial_pose_;
+            EigQuaterniond q(occupancy_grid_origin.linear());
+            occupancy_grid_msg->info.origin.orientation.x = q.x();
+            occupancy_grid_msg->info.origin.orientation.y = q.y();
+            occupancy_grid_msg->info.origin.orientation.z = q.z();
+            occupancy_grid_msg->info.origin.orientation.w = q.w();
+            occupancy_grid_msg->info.origin.position.x = occupancy_grid_origin.translation().x();
+            occupancy_grid_msg->info.origin.position.y = occupancy_grid_origin.translation().y();
+            occupancy_grid_msg->info.origin.position.z = occupancy_grid_origin.translation().z();
+            for(int & i : occupancy_grid->data_) {
+                occupancy_grid_msg->data.emplace_back(i);
+            }
+            occgrid_map_pub.publish(occupancy_grid_msg);
 
             // marker array initialized
             visualization_msgs::MarkerArray markers;

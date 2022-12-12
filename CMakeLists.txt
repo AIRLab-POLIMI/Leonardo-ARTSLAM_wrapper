@@ -15,7 +15,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   artslam_core
-  artslam_laser_3d
+  artslam
   ndt_omp
   fast_gicp
   nodelet
@@ -23,10 +23,11 @@ find_package(catkin REQUIRED COMPONENTS
   nmea_msgs
   sensor_msgs
   geometry_msgs
-  roscpp
+        roscpp
+        rosmsg
+        std_msgs
+        message_generation
   pcl_ros
-  std_msgs
-  message_generation
   tf
   tf_conversions
   eigen_conversions
@@ -71,10 +72,11 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS src
   LIBRARIES artslam_wrapper
-  CATKIN_DEPENDS artslam_core ndt_omp fast_gicp nodelet artslam_laser_3d
+  CATKIN_DEPENDS artslam_core ndt_omp fast_gicp nodelet artslam message_runtime std_msgs
 )
 
 include_directories(
+  ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/src
 )
@@ -259,17 +261,17 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_library(
-        artslam_controller
+add_library(artslam_controller
         src/controller/artslam_controller.cpp
-        src/bridge/artslam_bridge_visualizer.cpp
-)
-target_link_libraries(
-        artslam_controller
+        src/bridge/artslam_bridge_visualizer.cpp)
+
+add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS} artslam_wrapper_generate_messages_cpp)
+
+target_link_libraries(artslam_controller
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         ${Boost_LOG_LIBRARIES}
         ${Boost_LOG_SETUP_LIBRARIES}
         tbb
-)
-add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS})
+        )
+

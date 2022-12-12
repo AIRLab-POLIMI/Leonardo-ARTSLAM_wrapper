@@ -50,7 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>artslam_core</build_depend>
-  <build_depend>artslam_laser_3d</build_depend>
+  <build_depend>artslam</build_depend>
   <build_depend>ndt_omp</build_depend>
   <build_depend>fast_gicp</build_depend>
   <build_depend>nodelet</build_depend>
@@ -64,11 +64,11 @@
   <build_depend>message_generation</build_depend>
   <build_depend>libg2o</build_depend>
   <build_export_depend>artslam_core</build_export_depend>
-  <build_export_depend>artslam_laser_3d</build_export_depend>
+  <build_export_depend>artslam</build_export_depend>
   <build_export_depend>ndt_omp</build_export_depend>
   <build_export_depend>fast_gicp</build_export_depend>
   <exec_depend>artslam_core</exec_depend>
-  <exec_depend>artslam_laser_3d</exec_depend>
+  <exec_depend>artslam</exec_depend>
   <exec_depend>ndt_omp</exec_depend>
   <exec_depend>fast_gicp</exec_depend>
   <exec_depend>nodelet</exec_depend>
@@ -78,7 +78,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>geodesy</exec_depend>
   <exec_depend>pcl_ros</exec_depend>
-  <exec_depend>nessage_runtime</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

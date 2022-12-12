@@ -64,6 +64,7 @@ namespace artslam
             const std::string POSE_TOPIC = TOPIC_ROOT + "/pose";
             const std::string POINTCLOUD_TOPIC = TOPIC_ROOT + "/pointcloud";
             const std::string MARKER_TOPIC = TOPIC_ROOT + "/marker";
+            const std::string OCCUPANCYGRID_TOPIC = TOPIC_ROOT + "/occupancy_grid";
 
         public:
             /* Attributes ------------------------------------------------------------------------------------------- */
@@ -86,7 +87,8 @@ namespace artslam
 
             void update_slam_output_observer(
                     pcl::PointCloud<Point3I>::Ptr map,
-                    std::vector <Eigen::Isometry3d> poses
+                    std::vector <Eigen::Isometry3d> poses,
+                    OccupancyGrid::Ptr occupancy_grid
             ) override;
 
         private:
@@ -101,12 +103,13 @@ namespace artslam
             ros::Publisher markers_pub;
             ros::Publisher pose_pub;
             ros::Publisher pointcloud_pub;
+            ros::Publisher occgrid_map_pub;
 
             /* Methods ---------------------------------------------------------------------------------------------- */
             // Drawing method to refresh rviz or foxglove-studio
             void draw_pointcloud(const pcl::PointCloud<Point3I>::ConstPtr &pointcloud);
 
-            void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector <EigIsometry3d> poses);
+            void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector <EigIsometry3d> poses, OccupancyGrid::Ptr occupancy_grid);
 
             // Matrix transformation util
             geometry_msgs::TransformStamped matrix2transform(
