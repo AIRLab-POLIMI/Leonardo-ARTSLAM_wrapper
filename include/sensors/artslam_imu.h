@@ -23,6 +23,8 @@
 #ifndef ARTSLAM_IMU_H
 #define ARTSLAM_IMU_H
 
+#include "artslam_sensor.h"
+
 // ROS messages
 #include <sensor_msgs/Imu.h>
 
@@ -42,10 +44,11 @@ namespace artslam
          *
          * ...
          */
-        class ARTSLAMImu
+        class ARTSLAMImu : public ARTSLAMSensor<sensor_msgs::ImuPtr>
         {
             private:
                 tf::TransformListener tf_listener;
+                // TODO: anche pre-filterer nel back-end
 
             public:
                 /* Attributes --------------------------------------------------------------------------------------- */
@@ -61,7 +64,7 @@ namespace artslam
                     kernel = artslam_kernel;
                 };
 
-                void callback(const sensor_msgs::ImuPtr& msg)
+                void callback(const sensor_msgs::ImuPtr& msg) override
                 {
                     const auto& imu_orientation = msg->orientation;
                     const auto& imu_acceleration = msg->linear_acceleration;

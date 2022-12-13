@@ -23,6 +23,8 @@
 #ifndef ARTSLAM_GNSS_H
 #define ARTSLAM_GNSS_H
 
+#include "artslam_sensor.h"
+
 // ROS messages
 #include <sensor_msgs/NavSatFix.h>
 
@@ -39,7 +41,7 @@ namespace artslam
          *
          * ...
          */
-        class ARTSLAMGnss
+        class ARTSLAMGnss : public ARTSLAMSensor<sensor_msgs::NavSatFixConstPtr>
         {
             private:
                 tf::TransformListener tf_listener;
@@ -58,7 +60,7 @@ namespace artslam
                     kernel = artslam_kernel;
                 };
 
-                void callback(const sensor_msgs::NavSatFixConstPtr& msg)
+                void callback(const sensor_msgs::NavSatFixConstPtr& msg) override
                 {
                     if(counter == 0)
                     {

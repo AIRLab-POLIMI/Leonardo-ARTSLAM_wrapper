@@ -7,7 +7,6 @@
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
  * University: Politecnico di Milano - Artificial Intelligence & Robotics Lab
- * Last Modified: 30/11/2022
  * ---------------------------------------------------------------------------------------------------------------------
  * This file is part of {{ ARTSLAM_WRAPPER }}.
  *
@@ -28,8 +27,7 @@
 #include <artslam_utils/dispatcher.h>
 #include "graph_handler.h"
 #include <backend_handler.h>
-#include <configuration_parser.cpp>
-#include <backend_handler.cpp>
+#include <configuration_parser.h>
 #include "registration.h"
 #include "tracker.h"
 #include "ground_detector.h"
@@ -42,16 +40,21 @@ namespace artslam
 {
     namespace laser3d
     {
-        typedef struct ARTSLAMKernel
+        class ARTSLAMKernel
         {
-            std::shared_ptr<Prefilterer> prefilterer;
-            std::shared_ptr<Tracker> tracker;
-            std::shared_ptr<GroundDetector> ground_detector;
-            std::shared_ptr<GraphHandler> graph_handler;
-            std::shared_ptr<LoopDetector> loop_detector;
-            std::shared_ptr<InformationMatrixCalculator> information_matrix_calculator;
-            std::shared_ptr<BackendHandler> backend_handler;
-        } ARTSLAMKernel;
+            public:
+                std::shared_ptr<Prefilterer> prefilterer;
+                std::shared_ptr<Tracker> tracker;
+                std::shared_ptr<GroundDetector> ground_detector;
+                // ------------------------------------------------------------------------
+                std::shared_ptr<GraphHandler> graph_handler;
+                std::shared_ptr<LoopDetector> loop_detector;
+                std::shared_ptr<InformationMatrixCalculator> information_matrix_calculator;
+                std::shared_ptr<BackendHandler> backend_handler;
+
+                ARTSLAMKernel(){};
+                void start(std::string config_file, std::string results_path);
+        };
     }
 }
 

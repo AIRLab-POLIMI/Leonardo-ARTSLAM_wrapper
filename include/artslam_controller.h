@@ -7,7 +7,6 @@
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
  * University: Politecnico di Milano - Artificial Intelligence & Robotics Lab
- * Last Modified: 30/11/2022
  * ---------------------------------------------------------------------------------------------------------------------
  * This file is part of {{ ARTSLAM_WRAPPER }}.
  *
@@ -27,6 +26,8 @@
 // ARTSLAMBridgeVisualizer
 #include "artslam_bridge_visualizer.h"
 #include "artslam_kernel.h"
+
+#include "artslam_sensor.h"
 #include "sensors/artslam_lidar.h"
 #include "sensors/artslam_imu.h"
 #include "sensors/artslam_gnss.h"
@@ -76,7 +77,7 @@ namespace artslam
                 // Constructor
                 ARTSLAMController();
                 void onInit();
-                void startKernel(std::string config_file, std::string results_path);
+                //void startKernel(std::string config_file, std::string results_path);
                 bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
                                   artslam_wrapper::OfflineSLAM::Request &res);
 

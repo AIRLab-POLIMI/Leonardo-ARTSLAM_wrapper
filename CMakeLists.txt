@@ -263,7 +263,9 @@ include_directories(
 
 add_library(artslam_controller
         src/controller/artslam_controller.cpp
-        src/bridge/artslam_bridge_visualizer.cpp)
+        src/kernel/artslam_kernel.cpp
+        src/bridge/artslam_bridge_visualizer.cpp
+)
 
 add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS} artslam_wrapper_generate_messages_cpp)
 

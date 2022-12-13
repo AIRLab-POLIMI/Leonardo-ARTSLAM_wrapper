@@ -23,7 +23,7 @@
 #ifndef ARTSLAM_LIDAR_H
 #define ARTSLAM_LIDAR_H
 
-#include "../artslam_sensor.h"
+#include "artslam_sensor.h"
 
 // ROS messages
 #include <sensor_msgs/PointCloud2.h>
@@ -41,7 +41,7 @@ namespace artslam
          *
          * ...
          */
-        class ARTSLAMLidar //: public ARTSLAMSensor<sensor_msgs::PointCloud2ConstPtr>
+        class ARTSLAMLidar : public ARTSLAMSensor<sensor_msgs::PointCloud2ConstPtr>
         {
             public:
                 /* Attributes --------------------------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ namespace artslam
                     kernel = artslam_kernel;
                 };
 
-                void callback(const sensor_msgs::PointCloud2ConstPtr& msg)
+                void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                 {
                     if(!ros::ok())
                         return;

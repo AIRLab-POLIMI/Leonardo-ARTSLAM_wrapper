@@ -49,8 +49,9 @@ namespace artslam
                 ARTSLAMKernel* kernel;
 
                 /* Methods ------------------------------------------------------------------------------------------ */
-                ARTSLAMSensor();
-                void callback(const SensorMsgType& msg);
+                ARTSLAMSensor(){};
+
+                virtual void callback(const SensorMsgType& msg) = 0;
                 void setKernel(ARTSLAMKernel* artslam_kernel) { kernel = artslam_kernel; };
         };
     }
