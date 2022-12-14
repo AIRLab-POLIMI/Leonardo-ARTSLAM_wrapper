@@ -49,15 +49,25 @@ namespace artslam
                     _prefilterer = true;
                     _tracker = true;
                     _ground_detector = true;
-                    _topic = "/velodyne_points";
-                    _buffer = 64;
+                    _topic = "/velodyne_points"; // TODO: make it parametric
+                    _buffer = 64; // TODO: make it parametric
                 };
 
+                /**
+                 * Method in charge to initialize the sensor ROS subscriber.
+                 *
+                 * @param mt_nh ROS Node Handler reference
+                 */
                 void setSubscriber(ros::NodeHandle* mt_nh)
                 {
                     sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMLidar::callback, this);
                 };
 
+                /**
+                 * Sensor callback for the subscriber interaction.
+                 *
+                 * @param msg Template message which depends from the sensor type.
+                 */
                 void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                 {
                     if(!ros::ok())

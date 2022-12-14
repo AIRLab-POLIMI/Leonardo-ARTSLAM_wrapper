@@ -7,7 +7,6 @@
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
  * University: Politecnico di Milano - Artificial Intelligence & Robotics Lab
- * Last Modified: 30/11/2022
  * ---------------------------------------------------------------------------------------------------------------------
  * This file is part of {{ ARTSLAM_WRAPPER }}.
  *

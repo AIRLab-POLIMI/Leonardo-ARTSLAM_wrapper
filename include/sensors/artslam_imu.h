@@ -55,8 +55,8 @@ namespace artslam
                     _prefilterer = true;
                     _tracker = false;
                     _ground_detector = false;
-                    _topic = "/imu_data";
-                    _buffer = 1024;
+                    _topic = "/imu_data"; // TODO: make it parametric
+                    _buffer = 1024; // TODO: make it parametric
                 };
 
                 void setSubscriber(ros::NodeHandle* mt_nh)
@@ -64,6 +64,11 @@ namespace artslam
                     sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMImu::callback, this);
                 };
 
+                /**
+                 * Sensor callback for the subscriber interaction.
+                 *
+                 * @param msg Template message which depends from the sensor type.
+                 */
                 void callback(const sensor_msgs::ImuPtr& msg) override
                 {
                     const auto& imu_orientation = msg->orientation;

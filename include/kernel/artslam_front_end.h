@@ -35,6 +35,12 @@ namespace artslam
 {
     namespace laser3d
     {
+        /**
+         * ARTSLAMFrontEnd
+         *
+         * For each sensor a front-end module is initialized because each sub-module MUST be sensor dependent and cannot
+         * neither be shared among sensor of the same type; thus it is used by only one sensor (where it is called).
+         */
         class ARTSLAMFrontEnd
         {
             public:

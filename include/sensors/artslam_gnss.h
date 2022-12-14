@@ -39,7 +39,7 @@ namespace artslam
         /**
          * ARTSLAMGnss
          *
-         * ...
+         * Sensor class casted to manage GNSS behaviour.
          */
         class ARTSLAMGnss : public ARTSLAMSensor<sensor_msgs::NavSatFixConstPtr>
         {
@@ -52,15 +52,25 @@ namespace artslam
                     _prefilterer = false;
                     _tracker = false;
                     _ground_detector = false;
-                    _topic = "/gnss_data";
-                    _buffer = 1024;
+                    _topic = "/gnss_data"; // TODO: make it parametric
+                    _buffer = 1024; // TODO: make it parametric
                 };
 
+                /**
+                 * Method in charge to initialize the sensor ROS subscriber.
+                 *
+                 * @param mt_nh ROS Node Handler reference
+                 */
                 void setSubscriber(ros::NodeHandle* mt_nh)
                 {
                     sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMGnss::callback, this);
                 };
 
+                /**
+                 * Sensor callback for the subscriber interaction.
+                 *
+                 * @param msg Template message which depends from the sensor type.
+                 */
                 void callback(const sensor_msgs::NavSatFixConstPtr& msg) override
                 {
                     if(counter == 0)
@@ -80,6 +90,7 @@ namespace artslam
                                 transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z());
                         backend->backend_handler->set_gps_to_lidar_translation(g2l_translation);
                     }
+
                     GeoPointStamped_MSG::Ptr conv_gnss_msg(new GeoPointStamped_MSG);
                     conv_gnss_msg->header_.timestamp_ = msg->header.stamp.toNSec();
                     conv_gnss_msg->header_.frame_id_ = "base_link";
@@ -89,6 +100,7 @@ namespace artslam
                     conv_gnss_msg->longitude_ = msg->longitude;
                     conv_gnss_msg->altitude_ = msg->altitude;
                     conv_gnss_msg->covariance_type_ = msg->position_covariance_type;
+
                     for(int i = 0; i < 9; i++)
                     {
                         if(conv_gnss_msg->covariance_type_ == 0)

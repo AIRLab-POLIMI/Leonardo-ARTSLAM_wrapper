@@ -31,13 +31,19 @@ namespace artslam
 {
     namespace laser3d
     {
+        /**
+         * ARTSLAMLoopDetector
+         *
+         * The loop detector is historically argued to belong in the back-end or in the front-end; this choice to not
+         * include in none of them is due to the fact that we want to allow a modular architecture able to manage
+         * also sensor fusion in loop detection sub-modules for future related works.
+         */
         class ARTSLAMLoopDetector
         {
             public:
                 std::shared_ptr<LoopDetector> loop_detector;
 
                 ARTSLAMLoopDetector(){};
-
                 void start(std::string config_file);
         };
     }

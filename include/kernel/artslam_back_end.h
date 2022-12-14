@@ -35,6 +35,12 @@ namespace artslam
 {
     namespace laser3d
     {
+        /**
+         * ARTSLAMBackEnd
+         *
+         * Back-end module in charge of collecting ARTSLAM back-end submodules and initialize them. Each module is
+         * unique in the whole system (contrary to the back-end).
+         */
         class ARTSLAMBackEnd
         {
             public:

@@ -66,19 +66,15 @@ namespace artslam
         /**
          * ARTSLAMController
          *
-         * ...
+         * Main wrapper module which triggers the whole process: it reads a configuration file and configures the
+         * ARTSLAM kernel with the desired sensors by allocating front-ends and also the desired loop detectors.
+         * The controller is also in charge to manage the bridge-visualizer.
          */
         class ARTSLAMController : public nodelet::Nodelet
         {
-            public:
-                ARTSLAMController();
-                void onInit();
-                bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
-                                  artslam_wrapper::OfflineSLAM::Request &res);
-
             private:
-                void get_filepaths(const std::string &path, const std::string &extension,
-                                   std::vector<std::string> &filepaths);
+            /* Attributes ------------------------------------------------------------------------------------------- */
+                // ros attributes
                 ros::NodeHandle mt_nh;
                 ros::NodeHandle private_nh;
                 ros::ServiceServer service;
@@ -88,9 +84,19 @@ namespace artslam
                 std::string config_file;
                 std::string results_path;
 
-                // ART-SLAM wrapper components
+                // ARTSLAM wrapper main components
                 ARTSLAMBridgeVisualizer bridge;
                 ARTSLAMKernel kernel;
+
+            /* Methods ---------------------------------------------------------------------------------------------- */
+                void get_filepaths(const std::string &path, const std::string &extension,
+                                   std::vector<std::string> &filepaths);
+            public:
+            /* Methods ---------------------------------------------------------------------------------------------- */
+                ARTSLAMController();
+                void onInit();
+                bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
+                                  artslam_wrapper::OfflineSLAM::Request &res);
         };
     }
 }

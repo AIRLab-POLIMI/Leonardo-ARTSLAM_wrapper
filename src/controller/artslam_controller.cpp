@@ -1,4 +1,25 @@
-// Header library
+// -*- artslam-c++ -*-
+
+/* ---------------------------------------------------------------------------------------------------------------------
+ * Package: ARTSLAM-WRAPPER
+ * Class: ARTSLAMController
+ * Author: Mirko Usuelli
+ * Advisor: Prof. Matteo Matteucci, PhD
+ * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
+ * University: Politecnico di Milano - Artificial Intelligence & Robotics Lab
+ * ---------------------------------------------------------------------------------------------------------------------
+ * This file is part of {{ ARTSLAM_WRAPPER }}.
+ *
+ * Developed for the Politecnico di Milano (Artificial Intelligence & Robotics Lab)
+ * This product includes software developed by Matteo Frosi. See the README file at the top-level directory of this
+ * distribution for details of code ownership.
+ *
+ * This program is free software: you can redistribute it and/or modify it.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * ---------------------------------------------------------------------------------------------------------------------
+ */
 #include "controller/artslam_controller.h"
 
 #include <artslam_io/kitti_reader.hpp>
@@ -13,6 +34,9 @@ namespace artslam
     {
         ARTSLAMController::ARTSLAMController() : param_value(0) { return; };
 
+        /**
+         * Initialize the node by reading the configuration file and setting the kernel.
+         */
         void ARTSLAMController::onInit()
         {
             private_nh = getPrivateNodeHandle();
@@ -26,6 +50,13 @@ namespace artslam
             kernel.start(&mt_nh, &bridge, config_file);
         }
 
+        /**
+         * ROS Service for the final PCL map.
+         *
+         * @param req Request
+         * @param res Response
+         * @return true
+         */
         bool ARTSLAMController::offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
                                              artslam_wrapper::OfflineSLAM::Request &res)
         {
@@ -86,6 +117,12 @@ namespace artslam
             return true;
         }
 
+        /**
+         *
+         * @param path
+         * @param extension
+         * @param filepaths
+         */
         void ARTSLAMController::get_filepaths(const std::string &path, const std::string &extension,
                                               std::vector<std::string> &filepaths) {
             for (const auto &p: std::filesystem::directory_iterator(path)) {

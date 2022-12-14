@@ -2,7 +2,7 @@
 
 /* ---------------------------------------------------------------------------------------------------------------------
  * Package: ARTSLAM-WRAPPER
- * Class: ARTSLAMController
+ * Class: ARTSLAMKernel
  * Author: Mirko Usuelli
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
@@ -23,40 +23,37 @@
 #ifndef ARTSLAM_KERNEL_H
 #define ARTSLAM_KERNEL_H
 
+// kernel sub-modules
 #include "artslam_front_end.h"
 #include "artslam_loop_detector.h"
 #include "artslam_back_end.h"
 
+// sensors
 #include "sensors/artslam_lidar.h"
 #include "sensors/artslam_imu.h"
 #include "sensors/artslam_gnss.h"
-
-// ARTSLAM libraries
-#include <artslam_utils/dispatcher.h>
-#include "graph_handler.h"
-#include <backend_handler.h>
-#include <configuration_parser.h>
-#include "registration.h"
-#include "tracker.h"
-#include "ground_detector.h"
-#include "information_matrix_calculator.h"
-#include "loop_detector.h"
-#include <artslam_io/pointcloud_io.h>
-#include <prefilterer.h>
 
 namespace artslam
 {
     namespace laser3d
     {
+        /**
+         * ARTSLAMKernel
+         *
+         * This class incorporates all ARTSLAM sub-modules (Back-End + Loop Detector + Front-End) and it is in charge
+         * of construct them based on the configuration file.
+         */
         class ARTSLAMKernel
         {
             public:
                 /* front-end */
+                // TODO: make a vector
                 ARTSLAMLidar lidar;
                 ARTSLAMImu imu;
                 ARTSLAMGnss gnss;
 
                 /* loop-detectors */
+                // TODO: make a vector
                 ARTSLAMLoopDetector loop_detectors;
 
                 /* back-end */
