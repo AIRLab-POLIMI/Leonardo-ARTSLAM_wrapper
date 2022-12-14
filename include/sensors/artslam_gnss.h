@@ -47,17 +47,18 @@ namespace artslam
                 tf::TransformListener tf_listener;
 
             public:
-                /* Attributes --------------------------------------------------------------------------------------- */
-                int counter = 0;
-                ros::Subscriber sub;
-                ARTSLAMKernel* kernel;
-
-                /* Methods ------------------------------------------------------------------------------------------ */
-                ARTSLAMGnss(){};
-
-                void setKernel(ARTSLAMKernel* artslam_kernel)
+                ARTSLAMGnss()
                 {
-                    kernel = artslam_kernel;
+                    _prefilterer = false;
+                    _tracker = false;
+                    _ground_detector = false;
+                    _topic = "/gnss_data";
+                    _buffer = 1024;
+                };
+
+                void setSubscriber(ros::NodeHandle* mt_nh)
+                {
+                    sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMGnss::callback, this);
                 };
 
                 void callback(const sensor_msgs::NavSatFixConstPtr& msg) override
@@ -77,7 +78,7 @@ namespace artslam
 
                         EigVector3d g2l_translation(
                                 transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z());
-                        kernel->backend_handler->set_gps_to_lidar_translation(g2l_translation);
+                        backend->backend_handler->set_gps_to_lidar_translation(g2l_translation);
                     }
                     GeoPointStamped_MSG::Ptr conv_gnss_msg(new GeoPointStamped_MSG);
                     conv_gnss_msg->header_.timestamp_ = msg->header.stamp.toNSec();
@@ -99,7 +100,7 @@ namespace artslam
                             conv_gnss_msg->covariance_[i] = msg->position_covariance[i];
                         }
                     }
-                    kernel->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
+                    backend->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
                 };
         };
     }

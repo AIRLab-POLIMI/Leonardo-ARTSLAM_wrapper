@@ -1,5 +1,5 @@
 // Header library
-#include "artslam_controller.h"
+#include "controller/artslam_controller.h"
 
 #include <artslam_io/kitti_reader.hpp>
 #include <filesystem>
@@ -16,32 +16,18 @@ namespace artslam
         void ARTSLAMController::onInit()
         {
             private_nh = getPrivateNodeHandle();
-            mt_nh = getMTNodeHandle();
-            bridge.set_handler(mt_nh);
             private_nh.getParam("value", param_value);
-
             private_nh.getParam("configuration_file", config_file);
             private_nh.getParam("results_path", results_path);
-
-            kernel.start(config_file, results_path);
-            kernel.backend_handler->register_slam_output_observer(&bridge);
-
             service = private_nh.advertiseService("OfflineSLAM", &ARTSLAMController::offline_slam, this);
 
-            lidar.setKernel(&kernel);
-            lidar.sub = mt_nh.subscribe("/velodyne_points", 64, &artslam::laser3d::ARTSLAMLidar::callback, &lidar);
-
-            imu.setKernel(&kernel);
-            imu.sub = mt_nh.subscribe("/imu_data", 1024, &artslam::laser3d::ARTSLAMImu::callback, &imu);
-
-            gnss.setKernel(&kernel);
-            gnss.sub = mt_nh.subscribe("/gnss_data", 1024, &artslam::laser3d::ARTSLAMGnss::callback, &gnss);
-
+            mt_nh = getMTNodeHandle();
+            bridge.set_handler(mt_nh);
+            kernel.start(&mt_nh, &bridge, config_file);
         }
 
-        bool ARTSLAMController::offline_slam(
-                artslam_wrapper::OfflineSLAM::Request &req,
-                artslam_wrapper::OfflineSLAM::Request &res)
+        bool ARTSLAMController::offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
+                                             artslam_wrapper::OfflineSLAM::Request &res)
         {
             //kernel.backend_handler->save_results(results_path);
             //return true;
@@ -81,21 +67,21 @@ namespace artslam
                 pointcloud->header.seq = i;
                 pointcloud->header.stamp = timestamps[i];
 
-                kernel.prefilterer->update_raw_pointcloud_observer(pointcloud);
+                kernel.lidar.frontend.prefilterer->update_raw_pointcloud_observer(pointcloud);
                 usleep(100000);
             }
 
             sleep(5);
 
-            kernel.backend_handler->save_results(results_path);
+            kernel.backend.backend_handler->save_results(results_path);
 
             std::cout << "[END] Size: " << pointclouds_filepaths.size() << std::endl;
-            std::cout << "[END] Prefilterer: " << kernel.prefilterer->total_time_ << " - " << kernel.prefilterer->count_ << std::endl;
-            std::cout << "[END] Tracker: " << kernel.tracker->total_time_ << " - " << kernel.tracker->count_ << std::endl;
-            std::cout << "[END] GroundDetector: " << kernel.ground_detector->total_time_ << " - " << kernel.ground_detector->count_ << std::endl;
-            std::cout << "[END] LoopDetector: " << kernel.loop_detector->total_time_ << " - " << kernel.loop_detector->count_ << std::endl;
-            std::cout << "[END] GraphHandler: " << kernel.graph_handler->total_time_ << " - " << kernel.graph_handler->count_ << std::endl;
-            std::cout << "[END] BackendHandler: " << kernel.backend_handler->total_time_ << " - " << kernel.backend_handler->count_ << std::endl;
+            std::cout << "[END] Prefilterer: " << kernel.lidar.frontend.prefilterer->total_time_ << " - " << kernel.lidar.frontend.prefilterer->count_ << std::endl;
+            std::cout << "[END] Tracker: " << kernel.lidar.frontend.tracker->total_time_ << " - " << kernel.lidar.frontend.tracker->count_ << std::endl;
+            std::cout << "[END] GroundDetector: " << kernel.lidar.frontend.ground_detector->total_time_ << " - " << kernel.lidar.frontend.ground_detector->count_ << std::endl;
+            std::cout << "[END] LoopDetector: " << kernel.loop_detectors.loop_detector->total_time_ << " - " << kernel.loop_detectors.loop_detector->count_ << std::endl;
+            std::cout << "[END] GraphHandler: " << kernel.backend.graph_handler->total_time_ << " - " << kernel.backend.graph_handler->count_ << std::endl;
+            std::cout << "[END] BackendHandler: " << kernel.backend.backend_handler->total_time_ << " - " << kernel.backend.backend_handler->count_ << std::endl;
 
             return true;
         }

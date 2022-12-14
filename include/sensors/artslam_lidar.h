@@ -44,17 +44,18 @@ namespace artslam
         class ARTSLAMLidar : public ARTSLAMSensor<sensor_msgs::PointCloud2ConstPtr>
         {
             public:
-                /* Attributes --------------------------------------------------------------------------------------- */
-                int counter = 0;
-                ros::Subscriber sub;
-                ARTSLAMKernel* kernel;
-
-                /* Methods ------------------------------------------------------------------------------------------ */
-                ARTSLAMLidar(){};
-
-                void setKernel(ARTSLAMKernel* artslam_kernel)
+                ARTSLAMLidar()
                 {
-                    kernel = artslam_kernel;
+                    _prefilterer = true;
+                    _tracker = true;
+                    _ground_detector = true;
+                    _topic = "/velodyne_points";
+                    _buffer = 64;
+                };
+
+                void setSubscriber(ros::NodeHandle* mt_nh)
+                {
+                    sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMLidar::callback, this);
                 };
 
                 void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
@@ -67,7 +68,7 @@ namespace artslam
                     cloud->header.seq = counter;
 
                     cloud->header.stamp = msg->header.stamp.toNSec();
-                    kernel->prefilterer->update_raw_pointcloud_observer(cloud);
+                    frontend.prefilterer->update_raw_pointcloud_observer(cloud);
 
                     counter++;
                 };

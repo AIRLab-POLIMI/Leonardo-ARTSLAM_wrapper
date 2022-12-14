@@ -25,12 +25,12 @@
 
 // ARTSLAMBridgeVisualizer
 #include "artslam_bridge_visualizer.h"
-#include "artslam_kernel.h"
+#include "../kernel/artslam_kernel.h"
 
-#include "artslam_sensor.h"
-#include "sensors/artslam_lidar.h"
-#include "sensors/artslam_imu.h"
-#include "sensors/artslam_gnss.h"
+#include "../kernel/artslam_front_end.h"
+#include "../sensors/artslam_lidar.h"
+#include "../sensors/artslam_imu.h"
+#include "../sensors/artslam_gnss.h"
 
 // ROS libraries
 #include <ros/ros.h>
@@ -44,7 +44,7 @@
 #include <std_msgs/Float64.h>
 
 // ROS service
-#include <artslam_wrapper/OfflineSLAM.h>  // <------------------------------- // TODO: change name
+#include <artslam_wrapper/OfflineSLAM.h>
 
 // PCL libraries
 #include <pcl_conversions/pcl_conversions.h>
@@ -71,20 +71,14 @@ namespace artslam
         class ARTSLAMController : public nodelet::Nodelet
         {
             public:
-                /* Attributes --------------------------------------------------------------------------------------- */
-
-                /* Methods ------------------------------------------------------------------------------------------ */
-                // Constructor
                 ARTSLAMController();
                 void onInit();
-                //void startKernel(std::string config_file, std::string results_path);
                 bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
                                   artslam_wrapper::OfflineSLAM::Request &res);
 
             private:
-                void get_filepaths(const std::string &path, const std::string &extension, std::vector<std::string> &filepaths);
-
-                /* Attributes --------------------------------------------------------------------------------------- */
+                void get_filepaths(const std::string &path, const std::string &extension,
+                                   std::vector<std::string> &filepaths);
                 ros::NodeHandle mt_nh;
                 ros::NodeHandle private_nh;
                 ros::ServiceServer service;
@@ -97,15 +91,6 @@ namespace artslam
                 // ART-SLAM wrapper components
                 ARTSLAMBridgeVisualizer bridge;
                 ARTSLAMKernel kernel;
-
-                // Sensors
-                ARTSLAMLidar lidar;
-                ARTSLAMImu imu;
-                ARTSLAMGnss gnss;
-                // std::list<ARTSLAMSensor*> sensors;
-
-                /* Methods ------------------------------------------------------------------------------------------ */
-
         };
     }
 }

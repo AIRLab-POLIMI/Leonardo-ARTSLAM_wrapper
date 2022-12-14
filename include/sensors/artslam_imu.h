@@ -48,20 +48,20 @@ namespace artslam
         {
             private:
                 tf::TransformListener tf_listener;
-                // TODO: anche pre-filterer nel back-end
 
             public:
-                /* Attributes --------------------------------------------------------------------------------------- */
-                int counter = 0;
-                ros::Subscriber sub;
-                ARTSLAMKernel* kernel;
-
-                /* Methods ------------------------------------------------------------------------------------------ */
-                ARTSLAMImu(){};
-
-                void setKernel(ARTSLAMKernel* artslam_kernel)
+                ARTSLAMImu()
                 {
-                    kernel = artslam_kernel;
+                    _prefilterer = true;
+                    _tracker = false;
+                    _ground_detector = false;
+                    _topic = "/imu_data";
+                    _buffer = 1024;
+                };
+
+                void setSubscriber(ros::NodeHandle* mt_nh)
+                {
+                    sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::laser3d::ARTSLAMImu::callback, this);
                 };
 
                 void callback(const sensor_msgs::ImuPtr& msg) override
@@ -100,7 +100,7 @@ namespace artslam
                     tf::vector3StampedMsgToTF(acc_base, acc);
                     tf::vectorTFToEigen(acc, conv_imu_msg->linear_acceleration_);
 
-                    kernel->backend_handler->update_raw_imu_observer(conv_imu_msg);
+                    backend->backend_handler->update_raw_imu_observer(conv_imu_msg);
                 };
         };
     }

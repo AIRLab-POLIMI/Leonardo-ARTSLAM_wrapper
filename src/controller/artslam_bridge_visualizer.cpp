@@ -23,7 +23,7 @@
  */
 
 // Header library
-#include "artslam_bridge_visualizer.h"
+#include "controller/artslam_bridge_visualizer.h"
 
 // ROS Messages libraries
 #include <visualization_msgs/MarkerArray.h>
