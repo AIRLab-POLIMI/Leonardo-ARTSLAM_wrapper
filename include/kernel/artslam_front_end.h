@@ -24,12 +24,12 @@
 #define ARTSLAM_FRONT_END_H
 
 // ARTSLAM libraries
-#include <configuration_parser.h>
-#include "registration.h"
-#include "tracker.h"
-#include "ground_detector.h"
+#include <parser/configuration_parser.h>
+#include "frontend/registration/registration.h"
+#include "frontend/tracker/tracker.h"
+#include "frontend/ground_detector/ground_detector.h"
 #include <artslam_io/pointcloud_io.h>
-#include <prefilterer.h>
+#include <frontend/prefilterer/prefilterer.h>
 
 namespace artslam
 {

@@ -24,8 +24,8 @@
 #define ARTSLAM_LOOP_DETECTOR_H
 
 // ARTSLAM libraries
-#include <configuration_parser.h>
-#include "registration.h"
+#include <parser/configuration_parser.h>
+#include "frontend/registration/registration.h"
 
 namespace artslam
 {

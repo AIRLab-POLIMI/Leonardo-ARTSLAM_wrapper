@@ -24,11 +24,11 @@
 #define ARTSLAM_BACK_END_H
 
 // ARTSLAM libraries
-#include <configuration_parser.h>
-#include "registration.h"
-#include "graph_handler.h"
-#include <backend_handler.h>
-#include "information_matrix_calculator.h"
+#include <parser/configuration_parser.h>
+#include "frontend/registration/registration.h"
+#include "backend/graph_handler.h"
+#include <backend/backend_handler.h>
+#include "backend/information_matrix_calculator.h"
 #include "controller/artslam_bridge_visualizer.h"
 
 namespace artslam
