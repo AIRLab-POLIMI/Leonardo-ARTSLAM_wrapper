@@ -41,9 +41,10 @@ namespace artslam
         class ARTSLAMLoopDetector
         {
             public:
+                int _id;
                 std::shared_ptr<LoopDetector> loop_detector;
 
-                ARTSLAMLoopDetector(){};
+                ARTSLAMLoopDetector(int id){ _id = id; };
                 void start(std::string config_file);
         };
     }

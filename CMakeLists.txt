@@ -275,8 +275,8 @@ add_dependencies(artslam_controller ${catkin_EXPORTED_TARGETS} artslam_wrapper_g
 target_link_libraries(artslam_controller
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
+        ${Boost_INCLUDE_DIRS}
         ${Boost_LOG_LIBRARIES}
         ${Boost_LOG_SETUP_LIBRARIES}
         tbb
         )
-

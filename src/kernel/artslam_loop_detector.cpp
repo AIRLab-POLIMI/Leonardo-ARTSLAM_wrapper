@@ -33,12 +33,17 @@ namespace artslam
          */
         void ARTSLAMLoopDetector::start(std::string config_file)
         {
+            std::string welcome = " METHOD #" + std::to_string(_id) + " ";
+            std::string title(100, '=');
+            title.replace((int)(title.length() / 2 - (int)(welcome.length() / 2)), welcome.length(), welcome);
+            std::cout << std::endl << title << std::endl;
+
             /* loop detector */
             Registration::Configuration loop_detector_registration_configuration =
-                    parse_registration_loop_detector_configuration(config_file);
+                    parse_registration_loop_detector_configuration(config_file, 0);
             Registration loop_detector_registration(loop_detector_registration_configuration);
             LoopDetector::Configuration loop_detector_configuration =
-                    parse_loop_detector_configuration(config_file);
+                    parse_loop_detector_configuration(config_file, 0);
             loop_detector = std::make_shared<LoopDetector>(loop_detector_configuration,
                                                            loop_detector_registration.registration_method());
         }

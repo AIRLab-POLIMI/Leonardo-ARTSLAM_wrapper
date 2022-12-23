@@ -28,9 +28,6 @@
 // ROS messages
 #include <sensor_msgs/NavSatFix.h>
 
-// TF libraries
-#include <tf/transform_listener.h>
-
 
 namespace artslam
 {
@@ -43,17 +40,22 @@ namespace artslam
          */
         class ARTSLAMGnss : public ARTSLAMSensor<sensor_msgs::NavSatFixConstPtr>
         {
-            private:
-                tf::TransformListener tf_listener;
-
             public:
-                ARTSLAMGnss()
+                ARTSLAMGnss(tf::TransformListener* _tf_listener, int id, std::string topic, int buffer)
                 {
                     _prefilterer = false;
                     _tracker = false;
                     _ground_detector = false;
-                    _topic = "/gnss_data"; // TODO: make it parametric
-                    _buffer = 1024; // TODO: make it parametric
+
+                    _sensor_type = "GNSS";
+                    _sensor_id = id;
+
+                    _start_color = "\033[1;35m";
+                    _end_color = "\033[0m";
+
+                    _topic = topic;
+                    _buffer = buffer;
+                    tf_listener = _tf_listener;
                 };
 
                 /**
@@ -73,12 +75,13 @@ namespace artslam
                  */
                 void callback(const sensor_msgs::NavSatFixConstPtr& msg) override
                 {
+                    std::cout << _start_color;
                     if(counter == 0)
                     {
                         tf::StampedTransform transform;
                         try
                         {
-                            tf_listener.lookupTransform("base_link", msg->header.frame_id, ros::Time::now(), transform);
+                            tf_listener->lookupTransform("base_link", msg->header.frame_id, ros::Time::now(), transform);
                         }
                         catch (std::exception &e)
                         {
@@ -113,6 +116,7 @@ namespace artslam
                         }
                     }
                     backend->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
+                    std::cout << _end_color;
                 };
         };
     }

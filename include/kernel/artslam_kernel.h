@@ -32,6 +32,11 @@
 #include "sensors/artslam_lidar.h"
 #include "sensors/artslam_imu.h"
 #include "sensors/artslam_gnss.h"
+#include "sensors/artslam_camera.h"
+#include "sensors/artslam_radar.h"
+#include "sensors/artslam_odom.h"
+
+#include <tf/transform_listener.h>
 
 namespace artslam
 {
@@ -46,15 +51,18 @@ namespace artslam
         class ARTSLAMKernel
         {
             public:
+                tf::TransformListener tf_listener;
+
                 /* front-end */
-                // TODO: make a vector
-                ARTSLAMLidar lidar;
-                ARTSLAMImu imu;
-                ARTSLAMGnss gnss;
+                std::vector<ARTSLAMLidar> lidar_list;
+                std::vector<ARTSLAMImu> imu_list;
+                std::vector<ARTSLAMGnss> gnss_list;
+                std::vector<ARTSLAMCamera> camera_list;
+                std::vector<ARTSLAMRadar> radar_list;
+                std::vector<ARTSLAMOdom> odom_list;
 
                 /* loop-detectors */
-                // TODO: make a vector
-                ARTSLAMLoopDetector loop_detectors;
+                std::vector<ARTSLAMLoopDetector> loop_detector_list;
 
                 /* back-end */
                 ARTSLAMBackEnd backend;
@@ -62,6 +70,20 @@ namespace artslam
                 ARTSLAMKernel(){};
 
                 void start(ros::NodeHandle* mt_nh, ARTSLAMBridgeVisualizer* bridge, std::string config_file);
+
+                void addLoopDetector(int id) { loop_detector_list.push_back(ARTSLAMLoopDetector(id)); };
+
+                void addLidar(int id, std::string topic, int buffer) { lidar_list.push_back(ARTSLAMLidar(id, topic, buffer)); };
+
+                void addImu(int id, std::string topic, int buffer) { imu_list.push_back(ARTSLAMImu(&tf_listener, id, topic, buffer)); };
+
+                void addGnss(int id, std::string topic, int buffer) { gnss_list.push_back(ARTSLAMGnss(&tf_listener, id, topic, buffer)); };
+
+                void addCamera(int id, std::string topic, int buffer) { camera_list.push_back(ARTSLAMCamera(id, topic, buffer)); };
+
+                void addRadar(int id, std::string topic, int buffer) { radar_list.push_back(ARTSLAMRadar(id, topic, buffer)); };
+
+                void addOdom(int id, std::string topic, int buffer) { odom_list.push_back(ARTSLAMOdom(id, topic, buffer)); };
         };
     }
 }

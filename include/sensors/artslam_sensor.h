@@ -29,6 +29,9 @@
 #include <ros/ros.h>
 #include <ros/subscriber.h>
 
+// TF libraries
+#include <tf/transform_listener.h>
+
 namespace artslam
 {
     namespace laser3d
@@ -46,13 +49,21 @@ namespace artslam
                 bool _prefilterer;
                 bool _tracker;
                 bool _ground_detector;
+
+                std::string _sensor_type;
+                int _sensor_id;
+
                 std::string _topic; // TODO: make it parametric
                 int _buffer; // TODO: make it parametric
+                tf::TransformListener* tf_listener;
 
             public:
                 /* Attributes --------------------------------------------------------------------------------------- */
                 ros::Subscriber sensor_sub;
                 int counter = 0;
+
+                std::string _start_color;
+                std::string _end_color;
 
                 ARTSLAMFrontEnd frontend;
                 ARTSLAMLoopDetector* loop_detector;
@@ -85,8 +96,17 @@ namespace artslam
                  */
                 void start(ros::NodeHandle* mt_nh, ARTSLAMBackEnd* artslam_backend, std::string config_file)
                 {
+                    std::string welcome = " " + _sensor_type + " #" + std::to_string(_sensor_id) + " ";
+                    std::string title(100, '=');
+                    title.replace((int)(title.length() / 2 - (int)(welcome.length() / 2)), welcome.length(), welcome);
+
                     /* front-end */
+                    std::cout << _start_color << std::endl;
+                    std::cout << title << std::endl;
+                    std::cout << "- ROS topic name: " << _topic << std::endl;
+                    std::cout << "- ROS buffer size: " << _buffer << std::endl;
                     frontend.start(config_file, _prefilterer, _tracker, _ground_detector);
+                    std::cout << _end_color;
 
                     /* back-end */
                     setBackEnd(artslam_backend);

@@ -39,9 +39,12 @@ namespace artslam
             /* prefilterer */
             if (_prefilterer)
             {
+                std::cout << ">> PRE-FILTERER" << std::endl;
                 Prefilterer::Configuration prefilterer_configuration =
-                        artslam::laser3d::parse_prefilterer_configuration(config_file);
+                        artslam::laser3d::parse_prefilterer_configuration(config_file, "lidar", 0);
                 prefilterer = std::make_shared<Prefilterer>(prefilterer_configuration);
+
+                std::cout << std::endl;
             }
             else
             {
@@ -51,11 +54,18 @@ namespace artslam
             /* tracker */
             if (_tracker)
             {
-                Registration::Configuration registration_tracker_configuration =
-                        parse_registration_tracker_configuration(config_file);
+                std::cout << ">> TRACKER" << std::endl;
+                Registration::Configuration registration_tracker_configuration = parse_registration_tracker_configuration(config_file, "lidar", 0);
                 Registration registration(registration_tracker_configuration);
-                Tracker::Configuration tracker_configuration = parse_tracker_configuration(config_file);
+                Tracker::Configuration tracker_configuration = parse_tracker_configuration(config_file, "lidar", 0);
                 tracker = std::make_shared<Tracker>(tracker_configuration, registration.registration_method());
+
+                if (_prefilterer)
+                {
+                    prefilterer->register_filtered_pointcloud_observer(tracker.get());
+                }
+
+                std::cout << std::endl;
             }
             else
             {
@@ -65,28 +75,21 @@ namespace artslam
             /* ground detector */
             if (_ground_detector)
             {
+                std::cout << ">> GROUND-DETECTOR" << std::endl;
                 GroundDetector::Configuration ground_detector_configuration =
-                        parse_ground_detector_configuration(config_file);
+                        parse_ground_detector_configuration(config_file, "lidar", 0);
                 ground_detector = std::make_shared<GroundDetector>(ground_detector_configuration);
-            }
-            else
-            {
-                ground_detector = nullptr;
-            }
-
-
-            /* SLAM pipeline construction */
-            if (_prefilterer)
-            {
-                if (_tracker)
-                {
-                    prefilterer->register_filtered_pointcloud_observer(tracker.get());
-                }
 
                 if (_ground_detector)
                 {
                     prefilterer->register_filtered_pointcloud_observer(ground_detector.get());
                 }
+
+                std::cout << std::endl;
+            }
+            else
+            {
+                ground_detector = nullptr;
             }
         }
     }

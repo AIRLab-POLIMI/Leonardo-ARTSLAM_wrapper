@@ -48,6 +48,8 @@ namespace artslam
          */
         ARTSLAMBridgeVisualizer::ARTSLAMBridgeVisualizer() : tf_listener(tf_buffer)
         {
+            main_reference = "base_link";
+
             // Dispatcher initialization for the visualizer
             dispatcher = std::make_unique<core::utils::Dispatcher>(MODULE_ID, 1);
 
@@ -75,6 +77,8 @@ namespace artslam
          */
         ARTSLAMBridgeVisualizer::ARTSLAMBridgeVisualizer(ros::NodeHandle &nh) : tf_listener(tf_buffer)
         {
+            main_reference = "base_link";
+
             // Setting the ROS handler
             set_handler(nh);
 
@@ -96,6 +100,10 @@ namespace artslam
             init_msg.transform.rotation.x = init_msg.transform.rotation.y = init_msg.transform.rotation.z = 0;
             init_msg.transform.rotation.w = 1;
             tf_broadcaster.sendTransform(init_msg);
+        }
+
+        void ARTSLAMBridgeVisualizer::set_main_reference(std::string tf_name) {
+            main_reference = tf_name;
         }
 
         /**
@@ -142,7 +150,7 @@ namespace artslam
             *pointcloud_pcl = *pointcloud;
             pointcloud_pcl->header.stamp /= 1000ull;
             pcl::toROSMsg(*pointcloud_pcl, *pointcloud_msg);
-            pointcloud_msg->header.frame_id = "base_link";
+            pointcloud_msg->header.frame_id = main_reference;
             pointcloud_pub.publish(pointcloud_msg);
         }
 
@@ -218,7 +226,7 @@ namespace artslam
             // map->odom transformation
             geometry_msgs::TransformStamped map2odom;
             map2odom.header.frame_id = "map";
-            map2odom.child_frame_id = "base_link";
+            map2odom.child_frame_id = main_reference;
             map2odom.transform.translation.x = poses[poses.size()-1].translation().x();
             map2odom.transform.translation.y = poses[poses.size()-1].translation().y();
             map2odom.transform.translation.z = poses[poses.size()-1].translation().z();
@@ -269,7 +277,7 @@ namespace artslam
 
                 // first phase
                 geometry_msgs::PoseStamped tmp_tf_stamped;
-                tmp_tf_stamped.header.frame_id = "base_link";
+                tmp_tf_stamped.header.frame_id = main_reference;
                 tmp_tf_stamped.header.stamp = pose_.header.stamp;
                 tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
                 tf_buffer.transform(tmp_tf_stamped, odom2map, "odom");

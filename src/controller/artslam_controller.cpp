@@ -47,6 +47,7 @@ namespace artslam
 
             mt_nh = getMTNodeHandle();
             bridge.set_handler(mt_nh);
+            bridge.set_main_reference(parse_main_tf_reference(config_file));
             kernel.start(&mt_nh, &bridge, config_file);
         }
 
@@ -98,7 +99,7 @@ namespace artslam
                 pointcloud->header.seq = i;
                 pointcloud->header.stamp = timestamps[i];
 
-                kernel.lidar.frontend.prefilterer->update_raw_pointcloud_observer(pointcloud);
+                kernel.lidar_list[0].frontend.prefilterer->update_raw_pointcloud_observer(pointcloud);
                 usleep(100000);
             }
 
@@ -107,10 +108,10 @@ namespace artslam
             kernel.backend.backend_handler->save_results(results_path);
 
             std::cout << "[END] Size: " << pointclouds_filepaths.size() << std::endl;
-            std::cout << "[END] Prefilterer: " << kernel.lidar.frontend.prefilterer->total_time_ << " - " << kernel.lidar.frontend.prefilterer->count_ << std::endl;
-            std::cout << "[END] Tracker: " << kernel.lidar.frontend.tracker->total_time_ << " - " << kernel.lidar.frontend.tracker->count_ << std::endl;
-            std::cout << "[END] GroundDetector: " << kernel.lidar.frontend.ground_detector->total_time_ << " - " << kernel.lidar.frontend.ground_detector->count_ << std::endl;
-            std::cout << "[END] LoopDetector: " << kernel.loop_detectors.loop_detector->total_time_ << " - " << kernel.loop_detectors.loop_detector->count_ << std::endl;
+            std::cout << "[END] Prefilterer: " << kernel.lidar_list[0].frontend.prefilterer->total_time_ << " - " << kernel.lidar_list[0].frontend.prefilterer->count_ << std::endl;
+            std::cout << "[END] Tracker: " << kernel.lidar_list[0].frontend.tracker->total_time_ << " - " << kernel.lidar_list[0].frontend.tracker->count_ << std::endl;
+            std::cout << "[END] GroundDetector: " << kernel.lidar_list[0].frontend.ground_detector->total_time_ << " - " << kernel.lidar_list[0].frontend.ground_detector->count_ << std::endl;
+            std::cout << "[END] LoopDetector: " << kernel.loop_detector_list[0].loop_detector->total_time_ << " - " << kernel.loop_detector_list[0].loop_detector->count_ << std::endl;
             std::cout << "[END] GraphHandler: " << kernel.backend.graph_handler->total_time_ << " - " << kernel.backend.graph_handler->count_ << std::endl;
             std::cout << "[END] BackendHandler: " << kernel.backend.backend_handler->total_time_ << " - " << kernel.backend.backend_handler->count_ << std::endl;
 

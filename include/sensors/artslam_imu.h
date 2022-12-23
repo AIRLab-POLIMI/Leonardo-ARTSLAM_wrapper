@@ -46,17 +46,22 @@ namespace artslam
          */
         class ARTSLAMImu : public ARTSLAMSensor<sensor_msgs::ImuPtr>
         {
-            private:
-                tf::TransformListener tf_listener;
-
             public:
-                ARTSLAMImu()
+                ARTSLAMImu(tf::TransformListener* _tf_listener, int id, std::string topic, int buffer)
                 {
                     _prefilterer = true;
                     _tracker = false;
                     _ground_detector = false;
-                    _topic = "/imu_data"; // TODO: make it parametric
-                    _buffer = 1024; // TODO: make it parametric
+
+                    _sensor_type = "IMU";
+                    _sensor_id = id;
+
+                    _start_color = "\033[1;32m";
+                    _end_color = "\033[0m";
+
+                    _topic = topic;
+                    _buffer = buffer;
+                    tf_listener = _tf_listener;
                 };
 
                 void setSubscriber(ros::NodeHandle* mt_nh)
@@ -71,6 +76,7 @@ namespace artslam
                  */
                 void callback(const sensor_msgs::ImuPtr& msg) override
                 {
+                    std::cout << _start_color;
                     const auto& imu_orientation = msg->orientation;
                     const auto& imu_acceleration = msg->linear_acceleration;
 
@@ -86,8 +92,8 @@ namespace artslam
 
                     try
                     {
-                        tf_listener.transformVector("base_link", acc_imu, acc_base);
-                        tf_listener.transformQuaternion("base_link", quat_imu, quat_base);
+                        tf_listener->transformVector("base_link", acc_imu, acc_base);
+                        tf_listener->transformQuaternion("base_link", quat_imu, quat_base);
                     }
                     catch (tf2::TransformException &ex)
                     {
@@ -106,6 +112,7 @@ namespace artslam
                     tf::vectorTFToEigen(acc, conv_imu_msg->linear_acceleration_);
 
                     backend->backend_handler->update_raw_imu_observer(conv_imu_msg);
+                    std::cout << _end_color;
                 };
         };
     }

@@ -44,13 +44,20 @@ namespace artslam
         class ARTSLAMLidar : public ARTSLAMSensor<sensor_msgs::PointCloud2ConstPtr>
         {
             public:
-                ARTSLAMLidar()
+                ARTSLAMLidar(int id, std::string topic, int buffer)
                 {
                     _prefilterer = true;
                     _tracker = true;
                     _ground_detector = true;
-                    _topic = "/velodyne_points"; // TODO: make it parametric
-                    _buffer = 64; // TODO: make it parametric
+
+                    _sensor_type = "LIDAR";
+                    _sensor_id = id;
+
+                    _start_color = "\033[1;33m";
+                    _end_color = "\033[0m";
+
+                    _topic = topic;
+                    _buffer = buffer;
                 };
 
                 /**
@@ -70,6 +77,7 @@ namespace artslam
                  */
                 void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                 {
+                    std::cout << _start_color;
                     if(!ros::ok())
                         return;
 
@@ -81,6 +89,7 @@ namespace artslam
                     frontend.prefilterer->update_raw_pointcloud_observer(cloud);
 
                     counter++;
+                    std::cout << _end_color;
                 };
         };
     }

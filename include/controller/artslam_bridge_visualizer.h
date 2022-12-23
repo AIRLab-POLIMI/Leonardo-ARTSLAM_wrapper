@@ -72,6 +72,8 @@ namespace artslam
             tf2_ros::Buffer tf_buffer;
             tf2_ros::TransformListener tf_listener;
 
+            std::string main_reference;
+
             /* Methods ---------------------------------------------------------------------------------------------- */
             // Constructor
             ARTSLAMBridgeVisualizer();
@@ -80,6 +82,8 @@ namespace artslam
 
             // Setter
             void set_handler(ros::NodeHandle &nh) { handler = nh; };
+
+            void set_main_reference(std::string tf_name);
 
             // Observer updating interfaces
             void update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
