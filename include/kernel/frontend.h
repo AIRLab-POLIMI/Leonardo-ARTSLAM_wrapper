@@ -1,14 +1,14 @@
-// -*- artslam-c++ -*-
+// -*- lots-wrapper-c++ -*-
 
 /* ---------------------------------------------------------------------------------------------------------------------
- * Package: ARTSLAM-WRAPPER
- * Class: ARTSLAMFrontEnd
+ * Package: LOTS-WRAPPER
+ * Class: Frontend
  * Author: Mirko Usuelli
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
  * University: Politecnico di Milano - Artificial Intelligence & Robotics Lab
  * ---------------------------------------------------------------------------------------------------------------------
- * This file is part of {{ ARTSLAM_WRAPPER }}.
+ * This file is part of {{ LOTS-WRAPPER }}.
  *
  * Developed for the Politecnico di Milano (Artificial Intelligence & Robotics Lab)
  * This product includes software developed by Matteo Frosi. See the README file at the top-level directory of this
@@ -20,39 +20,42 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * ---------------------------------------------------------------------------------------------------------------------
  */
-#ifndef ARTSLAM_FRONT_END_H
-#define ARTSLAM_FRONT_END_H
+#ifndef WRAPPER_FRONTEND_H
+#define WRAPPER_FRONTEND_H
 
 // ARTSLAM libraries
-#include <parser/configuration_parser.h>
-#include "frontend/registration/registration.h"
-#include "frontend/tracker/tracker.h"
-#include "frontend/ground_detector/ground_detector.h"
+#include <utils/configuration_parser.h>
+#include <frontend/lidar/lidar_registration.h>
+#include <frontend/lidar/lidar_tracker.h>
+#include <frontend/lidar/lidar_ground_detector.h>
+#include <frontend/lidar/lidar_prefilterer.h>
 #include <artslam_io/pointcloud_io.h>
-#include <frontend/prefilterer/prefilterer.h>
 
 namespace artslam
 {
-    namespace laser3d
+    namespace lots
     {
-        /**
-         * ARTSLAMFrontEnd
-         *
-         * For each sensor a front-end module is initialized because each sub-module MUST be sensor dependent and cannot
-         * neither be shared among sensor of the same type; thus it is used by only one sensor (where it is called).
-         */
-        class ARTSLAMFrontEnd
+        namespace wrapper
         {
-            public:
-                std::shared_ptr<Prefilterer> prefilterer;
-                std::shared_ptr<Tracker> tracker;
-                std::shared_ptr<GroundDetector> ground_detector;
+            /**
+             * FrontEnd
+             *
+             * For each sensor a front-end module is initialized because each sub-module MUST be sensor dependent and cannot
+             * neither be shared among sensor of the same type; thus it is used by only one sensor (where it is called).
+             */
+            class Frontend
+            {
+                public:
+                    std::shared_ptr<Prefilterer> prefilterer;
+                    std::shared_ptr<Tracker> tracker;
+                    std::shared_ptr<GroundDetector> ground_detector;
 
-                ARTSLAMFrontEnd(){};
+                    Frontend(){};
 
-                void start(std::string config_file, bool _prefilterer, bool _tracker, bool _ground_detector);
-        };
+                    void start(std::string config_file, bool _prefilterer, bool _tracker, bool _ground_detector);
+            };
+        }
     }
 }
 
-#endif // ARTSLAM_FRONT_END_H
+#endif // WRAPPER_FRONTEND_H

@@ -20,34 +20,35 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * ---------------------------------------------------------------------------------------------------------------------
  */
-#ifndef ARTSLAM_LOOP_DETECTOR_H
-#define ARTSLAM_LOOP_DETECTOR_H
-
-// ARTSLAM libraries
-#include <parser/configuration_parser.h>
-#include "frontend/registration/registration.h"
+#include "kernel/loop_detector.h"
 
 namespace artslam
 {
-    namespace laser3d
+    namespace lots
     {
-        /**
-         * ARTSLAMLoopDetector
-         *
-         * The loop detector is historically argued to belong in the back-end or in the front-end; this choice to not
-         * include in none of them is due to the fact that we want to allow a modular architecture able to manage
-         * also sensor fusion in loop detection sub-modules for future related works.
-         */
-        class ARTSLAMLoopDetector
+        namespace wrapper
         {
-            public:
-                int _id;
-                std::shared_ptr<LoopDetector> loop_detector;
+            /**
+             * Initialize loop detector sub-modules.
+             *
+             * @param config_file
+             */
+            void LoopDetector::start(std::string config_file)
+            {
+                std::string welcome = " METHOD #" + std::to_string(_id) + " ";
+                std::string title(100, '=');
+                title.replace((int)(title.length() / 2 - (int)(welcome.length() / 2)), welcome.length(), welcome);
+                std::cout << std::endl << title << std::endl;
 
-                ARTSLAMLoopDetector(int id){ _id = id; };
-                void start(std::string config_file);
-        };
+                /* loop detector */
+                aRegistration::Configuration loop_detector_registration_configuration =
+                        parse_registration_loop_detector_configuration(config_file, 0);
+                Registration loop_detector_registration(loop_detector_registration_configuration);
+                FullLidar::Configuration loop_detector_configuration =
+                        parse_loop_detector_configuration(config_file, 0);
+                loop_detector = std::make_shared<FullLidar>(loop_detector_configuration,
+                                                               loop_detector_registration.registration_method());
+            }
+        }
     }
 }
-
-#endif // ARTSLAM_LOOP_DETECTOR_H
