@@ -46,9 +46,9 @@ namespace artslam
             class Frontend
             {
                 public:
-                    std::shared_ptr<Prefilterer> prefilterer;
-                    std::shared_ptr<Tracker> tracker;
-                    std::shared_ptr<GroundDetector> ground_detector;
+                    std::shared_ptr<LidarPrefilterer> prefilterer;
+                    std::shared_ptr<LidarTracker> tracker;
+                    std::shared_ptr<LidarGroundDetector> ground_detector;
 
                     Frontend(){};
 

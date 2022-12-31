@@ -43,7 +43,7 @@ namespace artslam
                 {
                     std::cout << ">> PRE-FILTERER" << std::endl;
                     Prefilterer::Configuration prefilterer_configuration = parse_prefilterer_configuration(config_file, "lidar", 0);
-                    prefilterer = std::make_shared<Prefilterer>(prefilterer_configuration);
+                    prefilterer = std::make_shared<LidarPrefilterer>(prefilterer_configuration);
 
                     std::cout << std::endl;
                 }
@@ -57,9 +57,9 @@ namespace artslam
                 {
                     std::cout << ">> TRACKER" << std::endl;
                     Registration::Configuration registration_tracker_configuration = parse_registration_tracker_configuration(config_file, "lidar", 0);
-                    Registration registration(registration_tracker_configuration);
+                    LidarRegistration registration(registration_tracker_configuration);
                     Tracker::Configuration tracker_configuration = parse_tracker_configuration(config_file, "lidar", 0);
-                    tracker = std::make_shared<Tracker>(tracker_configuration, registration.registration_method());
+                    tracker = std::make_shared<LidarTracker>(tracker_configuration, registration.registration_method());
 
                     if (_prefilterer)
                     {
@@ -79,7 +79,7 @@ namespace artslam
                     std::cout << ">> GROUND-DETECTOR" << std::endl;
                     GroundDetector::Configuration ground_detector_configuration =
                             parse_ground_detector_configuration(config_file, "lidar", 0);
-                    ground_detector = std::make_shared<GroundDetector>(ground_detector_configuration);
+                    ground_detector = std::make_shared<LidarGroundDetector>(ground_detector_configuration);
 
                     if (_ground_detector)
                     {

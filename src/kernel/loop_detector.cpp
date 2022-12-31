@@ -41,10 +41,10 @@ namespace artslam
                 std::cout << std::endl << title << std::endl;
 
                 /* loop detector */
-                aRegistration::Configuration loop_detector_registration_configuration =
+                Registration::Configuration loop_detector_registration_configuration =
                         parse_registration_loop_detector_configuration(config_file, 0);
-                Registration loop_detector_registration(loop_detector_registration_configuration);
-                FullLidar::Configuration loop_detector_configuration =
+                LidarRegistration loop_detector_registration(loop_detector_registration_configuration);
+                artslam::lots::LoopDetector::Configuration loop_detector_configuration =
                         parse_loop_detector_configuration(config_file, 0);
                 loop_detector = std::make_shared<FullLidar>(loop_detector_configuration,
                                                                loop_detector_registration.registration_method());
