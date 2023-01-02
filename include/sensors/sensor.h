@@ -28,6 +28,7 @@
 // ROS libraries
 #include <ros/ros.h>
 #include <ros/subscriber.h>
+#include <boost/algorithm/string.hpp>
 
 // TF libraries
 #include <tf/transform_listener.h>
@@ -107,7 +108,8 @@ namespace artslam
                         std::cout << title << std::endl;
                         std::cout << "- ROS topic name: " << _topic << std::endl;
                         std::cout << "- ROS buffer size: " << _buffer << std::endl;
-                        frontend.start(config_file, _prefilterer, _tracker, _ground_detector);
+                        std::string sensor_type =  boost::algorithm::to_lower_copy(_sensor_type);
+                        frontend.start(config_file, sensor_type, _sensor_id);
                         std::cout << _end_color;
 
                         /* back-end */
@@ -137,15 +139,11 @@ namespace artslam
                     {
                         backend = _backend;
 
-                        if (_tracker)
-                        {
-                            frontend.tracker->register_keyframe_observer(backend->backend_handler.get());
-                        }
+                        if (frontend.modules.find("tracker") != frontend.modules.end())
+                            frontend.modules["tracker"]->register_keyframe_observer(backend->backend_handler.get());
 
-                        if (_ground_detector)
-                        {
-                            frontend.ground_detector->register_floor_coefficients_observer(backend->backend_handler.get());
-                        }
+                        if (frontend.modules.find("ground_detector") != frontend.modules.end())
+                            frontend.modules["ground_detector"]->register_floor_coefficients_observer(backend->backend_handler.get());
                     };
             };
         }

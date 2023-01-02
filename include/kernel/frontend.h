@@ -25,11 +25,15 @@
 
 // ARTSLAM libraries
 #include <utils/configuration_parser.h>
+#include <modules/module.h>
 #include <frontend/lidar/lidar_registration.h>
 #include <frontend/lidar/lidar_tracker.h>
 #include <frontend/lidar/lidar_ground_detector.h>
 #include <frontend/lidar/lidar_prefilterer.h>
+#include <frontend/odom/odom_tracker.h>
 #include <artslam_io/pointcloud_io.h>
+#include <map>
+#include <string>
 
 namespace artslam
 {
@@ -46,13 +50,15 @@ namespace artslam
             class Frontend
             {
                 public:
-                    std::shared_ptr<LidarPrefilterer> prefilterer;
-                    std::shared_ptr<LidarTracker> tracker;
-                    std::shared_ptr<LidarGroundDetector> ground_detector;
+                    std::map<std::string, std::shared_ptr<FrontendModule>> modules;
 
                     Frontend(){};
 
-                    void start(std::string config_file, bool _prefilterer, bool _tracker, bool _ground_detector);
+                    void start(std::string config_file, std::string sensor, int id);
+
+                    void addPrefilterer(std::string config_file, std::string sensor, int id);
+                    void addTracker(std::string config_file, std::string sensor, int id);
+                    void addGroundDetector(std::string config_file, std::string sensor, int id);
             };
         }
     }

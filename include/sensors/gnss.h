@@ -77,7 +77,6 @@ namespace artslam
                      */
                     void callback(const sensor_msgs::NavSatFixConstPtr& msg) override
                     {
-                        std::cout << _start_color;
                         if(counter == 0)
                         {
                             tf::StampedTransform transform;
@@ -118,7 +117,6 @@ namespace artslam
                             }
                         }
                         backend->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
-                        std::cout << _end_color;
                     };
             };
         }

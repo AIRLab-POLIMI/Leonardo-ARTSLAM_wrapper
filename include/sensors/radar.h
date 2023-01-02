@@ -79,17 +79,7 @@ namespace artslam
                      */
                     void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                     {
-                        if(!ros::ok())
-                            return;
-
-                        pcl::PointCloud<Point3I>::Ptr cloud(new pcl::PointCloud<Point3I>());
-                        pcl::fromROSMsg(*msg, *cloud);
-                        cloud->header.seq = counter;
-
-                        cloud->header.stamp = msg->header.stamp.toNSec();
-                        frontend.prefilterer->update_raw_pointcloud_observer(cloud);
-
-                        counter++;
+                        ;
                     };
             };
         }

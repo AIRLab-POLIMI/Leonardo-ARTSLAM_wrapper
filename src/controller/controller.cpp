@@ -101,7 +101,7 @@ namespace artslam
                     pointcloud->header.seq = i;
                     pointcloud->header.stamp = timestamps[i];
 
-                    skeleton.lidar_list[0].frontend.prefilterer->update_raw_pointcloud_observer(pointcloud);
+                    skeleton.lidar_list[0].frontend.modules["prefilterer"]->update_raw_pointcloud_observer(pointcloud);
                     usleep(100000);
                 }
 
@@ -110,9 +110,9 @@ namespace artslam
                 skeleton.backend.backend_handler->save_results(results_path);
 
                 std::cout << "[END] Size: " << pointclouds_filepaths.size() << std::endl;
-                std::cout << "[END] Prefilterer: " << skeleton.lidar_list[0].frontend.prefilterer->total_time_ << " - " << skeleton.lidar_list[0].frontend.prefilterer->count_ << std::endl;
-                std::cout << "[END] Tracker: " << skeleton.lidar_list[0].frontend.tracker->total_time_ << " - " << skeleton.lidar_list[0].frontend.tracker->count_ << std::endl;
-                std::cout << "[END] GroundDetector: " << skeleton.lidar_list[0].frontend.ground_detector->total_time_ << " - " << skeleton.lidar_list[0].frontend.ground_detector->count_ << std::endl;
+                std::cout << "[END] Prefilterer: " << skeleton.lidar_list[0].frontend.modules["prefilterer"]->total_time_ << " - " << skeleton.lidar_list[0].frontend.modules["prefilterer"]->count_ << std::endl;
+                std::cout << "[END] Tracker: " << skeleton.lidar_list[0].frontend.modules["tracker"]->total_time_ << " - " << skeleton.lidar_list[0].frontend.modules["tracker"]->count_ << std::endl;
+                std::cout << "[END] GroundDetector: " << skeleton.lidar_list[0].frontend.modules["ground_detector"]->total_time_ << " - " << skeleton.lidar_list[0].frontend.modules["ground_detector"]->count_ << std::endl;
                 std::cout << "[END] LoopDetector: " << skeleton.loop_detector_list[0].loop_detector->total_time_ << " - " << skeleton.loop_detector_list[0].loop_detector->count_ << std::endl;
                 std::cout << "[END] GraphHandler: " << skeleton.backend.graph_handler->total_time_ << " - " << skeleton.backend.graph_handler->count_ << std::endl;
                 std::cout << "[END] BackendHandler: " << skeleton.backend.backend_handler->total_time_ << " - " << skeleton.backend.backend_handler->count_ << std::endl;

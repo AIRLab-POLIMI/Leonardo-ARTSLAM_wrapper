@@ -79,7 +79,6 @@ namespace artslam
                      */
                     void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                     {
-                        std::cout << _start_color;
                         if(!ros::ok())
                             return;
 
@@ -88,10 +87,9 @@ namespace artslam
                         cloud->header.seq = counter;
 
                         cloud->header.stamp = msg->header.stamp.toNSec();
-                        frontend.prefilterer->update_raw_pointcloud_observer(cloud);
+                        frontend.modules["prefilterer"]->update_raw_pointcloud_observer(cloud);
 
                         counter++;
-                        std::cout << _end_color;
                     };
             };
         }

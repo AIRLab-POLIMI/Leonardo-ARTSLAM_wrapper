@@ -36,23 +36,22 @@ namespace artslam
              */
             void Backend::start(BridgeVisualizer* bridge, std::string config_file)
             {
-                /* graph handler */
+                /* graph handler ------------------------------------------------------------------------------------ */
                 std::cout << ">> GRAPH-HANDLER" << std::endl;
                 graph_handler = std::make_shared<GraphHandler>();
 
 
-                /* information matrix calculator */
+                /* information matrix calculator ---------------------------------------------------------------------*/
                 std::cout << std::endl << ">> INFORMATION-MATRIX-CALCULATOR" << std::endl;
-                InformationMatrixCalculator::Configuration information_matrix_calculator_configuration =
-                        parse_information_matrix_calculator(config_file);
-                information_matrix_calculator =
-                        std::make_shared<InformationMatrixCalculator>(information_matrix_calculator_configuration);
+                InformationMatrixCalculator::Configuration im_config = parse_information_matrix_calculator(config_file);
+                information_matrix_calculator = std::make_shared<InformationMatrixCalculator>(im_config);
 
-                /* backend handler */
+                /* backend handler ---------------------------------------------------------------------------------- */
                 std::cout << std::endl << ">> BACKEND-HANDLER" << std::endl;
-                BackendHandler::Configuration backend_handler_configuration =
-                        parse_backend_handler_configuration(config_file);
-                backend_handler = std::make_shared<BackendHandler>(backend_handler_configuration);
+                BackendHandler::Configuration bh_config = parse_backend_handler_configuration(config_file);
+                backend_handler = std::make_shared<BackendHandler>(bh_config);
+
+                // building up everything together
                 backend_handler->set_graph_handler(graph_handler.get());
                 backend_handler->set_information_matrix_calculator(information_matrix_calculator.get());
                 backend_handler->register_slam_output_observer(bridge);
