@@ -101,7 +101,7 @@ namespace artslam
                         odom_msg->covariance_ = Eigen::MatrixXd::Map(&(msg->pose.covariance[0]), 6, 6);
 
                         // TODO: move to the right front-end
-                        _lidar->frontend.modules["tracker"]->update_prior_odometry_observer(odom_msg);
+                        (static_cast<LidarTracker*>(_lidar->frontend.modules["tracker"].get()))->update_prior_odometry_observer(odom_msg);
                         //frontend.tracker->update_odometry_observer(odom_msg);
                     };
             };

@@ -97,7 +97,7 @@ namespace artslam
                     LidarRegistration registration(reg_config);
                     modules["tracker"] = std::make_shared<LidarTracker>(config, registration.registration_method());
                     if (modules.find("prefilterer") != modules.end())
-                        modules["prefilterer"]->register_filtered_pointcloud_observer(static_cast<LidarTracker*>(modules["tracker"].get()));
+                        (static_cast<LidarPrefilterer*>(modules["prefilterer"].get()))->register_filtered_pointcloud_observer(static_cast<LidarTracker*>(modules["tracker"].get()));
                 } else if (sensor == "camera")
                     std::cout << "[ERROR] Camera Tracker not yet implemented!" << std::endl;
                     //TODO: modules["tracker"] = std::make_shared<CameraTracker>(config);
@@ -126,7 +126,7 @@ namespace artslam
                 if (sensor == "lidar") {
                     modules["ground_detector"] = std::make_shared<LidarGroundDetector>(config);
                     if (modules.find("prefilterer") != modules.end())
-                        modules["prefilterer"]->register_filtered_pointcloud_observer(static_cast<LidarGroundDetector*>(modules["ground_detector"].get()));
+                        (static_cast<LidarPrefilterer*>(modules["prefilterer"].get()))->register_filtered_pointcloud_observer(static_cast<LidarGroundDetector*>(modules["ground_detector"].get()));
                 } else if (sensor == "camera")
                     std::cout << "[ERROR] Camera Ground Detector not yet implemented!" << std::endl;
                     //TODO: modules["ground_detector"] = std::make_shared<CameraGroundDetector>(config);

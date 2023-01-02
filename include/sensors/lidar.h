@@ -79,6 +79,7 @@ namespace artslam
                      */
                     void callback(const sensor_msgs::PointCloud2ConstPtr& msg) override
                     {
+                        std::cout << "arrived" << std::endl;
                         if(!ros::ok())
                             return;
 
@@ -87,7 +88,7 @@ namespace artslam
                         cloud->header.seq = counter;
 
                         cloud->header.stamp = msg->header.stamp.toNSec();
-                        frontend.modules["prefilterer"]->update_raw_pointcloud_observer(cloud);
+                        (static_cast<LidarPrefilterer*>(frontend.modules["prefilterer"].get()))->update_raw_pointcloud_observer(cloud);
 
                         counter++;
                     };

@@ -140,10 +140,10 @@ namespace artslam
                         backend = _backend;
 
                         if (frontend.modules.find("tracker") != frontend.modules.end())
-                            frontend.modules["tracker"]->register_keyframe_observer(backend->backend_handler.get());
+                            (static_cast<LidarTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(backend->backend_handler.get());
 
                         if (frontend.modules.find("ground_detector") != frontend.modules.end())
-                            frontend.modules["ground_detector"]->register_floor_coefficients_observer(backend->backend_handler.get());
+                            (static_cast<LidarGroundDetector*>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(backend->backend_handler.get());
                     };
             };
         }
