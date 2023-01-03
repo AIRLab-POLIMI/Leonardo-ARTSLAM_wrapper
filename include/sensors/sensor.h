@@ -135,12 +135,17 @@ namespace artslam
                      *
                      * @param artslam_backend Back-end reference
                      */
-                    void setBackEnd(Backend* _backend)
-                    {
+                    void setBackEnd(Backend* _backend) {
                         backend = _backend;
-
-                        if (frontend.modules.find("tracker") != frontend.modules.end())
-                            (static_cast<LidarTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(backend->backend_handler.get());
+                        std::string sensor_type = boost::algorithm::to_lower_copy(_sensor_type);
+                        if (frontend.modules.find("tracker") != frontend.modules.end()){
+                            if (sensor_type == "lidar")
+                                (static_cast<LidarTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(
+                                        backend->backend_handler.get());
+                            else if (sensor_type == "odom")
+                                (static_cast<OdomTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(
+                                        backend->backend_handler.get());
+                        }
 
                         if (frontend.modules.find("ground_detector") != frontend.modules.end())
                             (static_cast<LidarGroundDetector*>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(backend->backend_handler.get());

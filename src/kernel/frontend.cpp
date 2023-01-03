@@ -66,14 +66,17 @@ namespace artslam
                 std::cout << ">> PRE-FILTERER" << std::endl;
                 Prefilterer::Configuration config = parse_prefilterer_configuration(config_file, sensor, id);
 
-                if (sensor == "lidar")
+                if (sensor == "lidar") {
                     modules["prefilterer"] = std::make_shared<LidarPrefilterer>(config);
-                else if (sensor == "camera")
+                    modules["prefilterer"]->set_id("lidar", id);
+                } else if (sensor == "camera")
                     std::cout << "[ERROR] Camera Prefilterer not yet implemented!" << std::endl;
                     //TODO: modules["prefilterer"] = std::make_shared<CameraPrefilterer>(config);
+                    //modules["prefilterer"]->set_id("camera", id);
                 else if (sensor == "radar")
                     std::cout << "[ERROR] Radar Prefilterer not yet implemented!" << std::endl;
                     //TODO: modules["prefilterer"] = std::make_shared<RadarPrefilterer>(config);
+                    //modules["prefilterer"]->set_id("radar", id);
                 else
                     std::cout << "[ERROR] Prefilterer module for " << sensor << " sensor does not exist!" << std::endl;
 
@@ -96,17 +99,21 @@ namespace artslam
                     Registration::Configuration reg_config = parse_registration_tracker_configuration(config_file, sensor, id);
                     LidarRegistration registration(reg_config);
                     modules["tracker"] = std::make_shared<LidarTracker>(config, registration.registration_method());
+                    modules["tracker"]->set_id("lidar", id);
                     if (modules.find("prefilterer") != modules.end())
                         (static_cast<LidarPrefilterer*>(modules["prefilterer"].get()))->register_filtered_pointcloud_observer(static_cast<LidarTracker*>(modules["tracker"].get()));
                 } else if (sensor == "camera")
                     std::cout << "[ERROR] Camera Tracker not yet implemented!" << std::endl;
                     //TODO: modules["tracker"] = std::make_shared<CameraTracker>(config);
+                    //modules["tracker"]->set_id("camera", id);
                 else if (sensor == "radar")
                     std::cout << "[ERROR] Radar Tracker not yet implemented!" << std::endl;
                     //TODO: modules["tracker"] = std::make_shared<RadarTracker>(config);
-                else if (sensor == "odom")
+                    //modules["tracker"]->set_id("radar", id);
+                else if (sensor == "odom") {
                     modules["tracker"] = std::make_shared<OdomTracker>(config);
-                else
+                    modules["tracker"]->set_id("odom", id);
+                } else
                     std::cout << "[ERROR] Tracker module for " << sensor << " sensor does not exist!" << std::endl;
 
                 std::cout << std::endl;
@@ -125,11 +132,13 @@ namespace artslam
                 GroundDetector::Configuration config = parse_ground_detector_configuration(config_file, sensor, id);
                 if (sensor == "lidar") {
                     modules["ground_detector"] = std::make_shared<LidarGroundDetector>(config);
+                    modules["ground_detector"]->set_id("lidar", id);
                     if (modules.find("prefilterer") != modules.end())
                         (static_cast<LidarPrefilterer*>(modules["prefilterer"].get()))->register_filtered_pointcloud_observer(static_cast<LidarGroundDetector*>(modules["ground_detector"].get()));
                 } else if (sensor == "camera")
                     std::cout << "[ERROR] Camera Ground Detector not yet implemented!" << std::endl;
                     //TODO: modules["ground_detector"] = std::make_shared<CameraGroundDetector>(config);
+                    //modules["ground_detector"]->set_id("camera", id);
                 else
                     std::cout << "[ERROR] Ground Detector module for " << sensor << " sensor does not exist!" << std::endl;
 

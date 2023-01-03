@@ -97,6 +97,8 @@ namespace artslam
                         OdometryStamped3D_MSG::Ptr odom_msg(new OdometryStamped3D_MSG());
                         odom_msg->header_.timestamp_ = msg->header.stamp.toNSec();
                         odom_msg->header_.frame_id_ = "base_link";
+                        odom_msg->header_.sensor_type_ = boost::algorithm::to_lower_copy(_sensor_type);;
+                        odom_msg->header_.sensor_id_ = _sensor_id;
                         odom_msg->odometry_ = i3d.matrix().cast<float>();
                         odom_msg->covariance_ = Eigen::MatrixXd::Map(&(msg->pose.covariance[0]), 6, 6);
 

@@ -75,6 +75,7 @@ namespace artslam
                     {
                         addLidar(i, parse_sensor_topic(config_file, "lidar", i), parse_sensor_buffer(config_file, "lidar", i));
                         lidar_list[i].start(mt_nh, &backend, config_file);
+                        backend.backend_handler->add_sensor_graph("lidar", i);
                     }
                     else
                     {
@@ -120,6 +121,7 @@ namespace artslam
                     {
                         addCamera(i, parse_sensor_topic(config_file, "camera", i), parse_sensor_buffer(config_file, "camera", i));
                         camera_list[i].start(mt_nh, &backend, config_file);
+                        backend.backend_handler->add_sensor_graph("camera", i);
                     }
                     else
                     {
@@ -135,6 +137,7 @@ namespace artslam
                     {
                         addRadar(i, parse_sensor_topic(config_file, "radar", i), parse_sensor_buffer(config_file, "radar", i));
                         radar_list[i].start(mt_nh, &backend, config_file);
+                        backend.backend_handler->add_sensor_graph("radar", i);
                     }
                     else
                     {
@@ -151,6 +154,7 @@ namespace artslam
                         addOdom(i, parse_sensor_topic(config_file, "odom", i), parse_sensor_buffer(config_file, "odom", i));
                         odom_list[i].start(mt_nh, &backend, config_file);
                         odom_list[i].addPriorSensor(&lidar_list[0]);
+                        backend.backend_handler->add_sensor_graph("odom", i);
                     }
                     else
                     {

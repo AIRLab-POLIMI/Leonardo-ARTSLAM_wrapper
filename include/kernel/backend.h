@@ -25,7 +25,7 @@
 
 // LOTS-SLAM libraries
 #include <utils/configuration_parser.h>
-#include <frontend/lidar/lidar_registration.h>
+#include <sensors/lidar/lidar_registration.h>
 #include <backend/graph_handler.h>
 #include <backend/backend_handler.h>
 #include <backend/information_matrix_calculator.h>
