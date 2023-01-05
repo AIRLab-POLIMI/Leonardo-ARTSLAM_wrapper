@@ -46,14 +46,8 @@ namespace artslam
             class Odom : public Sensor<nav_msgs::OdometryConstPtr>
             {
                 public:
-                    Lidar* _lidar;
-
                     Odom(int id, std::string topic, int buffer)
                     {
-                        _prefilterer = false;
-                        _tracker = true;
-                        _ground_detector = false;
-
                         _sensor_type = "ODOM";
                         _sensor_id = id;
 
@@ -65,19 +59,11 @@ namespace artslam
                     };
 
                     /**
-                     *
-                     * @param lidar
-                     */
-                    void addPriorSensor(Lidar* lidar) {
-                        _lidar = lidar;
-                    }
-
-                    /**
                      * Method in charge to initialize the sensor ROS subscriber.
                      *
                      * @param mt_nh ROS Node Handler reference
                      */
-                    void setSubscriber(ros::NodeHandle* mt_nh)
+                    void setSubscribers(ros::NodeHandle* mt_nh)
                     {
                         sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::lots::wrapper::Odom::callback, this);
                     };
@@ -102,9 +88,7 @@ namespace artslam
                         odom_msg->odometry_ = i3d.matrix().cast<float>();
                         odom_msg->covariance_ = Eigen::MatrixXd::Map(&(msg->pose.covariance[0]), 6, 6);
 
-                        // TODO: move to the right front-end
-                        (static_cast<LidarTracker*>(_lidar->frontend.modules["tracker"].get()))->update_prior_odometry_observer(odom_msg);
-                        //frontend.tracker->update_odometry_observer(odom_msg);
+                        (static_cast<OdomTracker*>(frontend.modules["tracker"].get()))->update_odometry_observer(odom_msg);
                     };
             };
         }

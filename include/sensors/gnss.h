@@ -27,7 +27,9 @@
 
 // ROS messages
 #include <sensor_msgs/NavSatFix.h>
+#include <nav_msgs/Odometry.h>
 
+#include <tf_conversions/tf_eigen.h>
 
 namespace artslam
 {
@@ -45,10 +47,6 @@ namespace artslam
                 public:
                     Gnss(tf::TransformListener* _tf_listener, int id, std::string topic, int buffer)
                     {
-                        _prefilterer = false;
-                        _tracker = false;
-                        _ground_detector = false;
-
                         _sensor_type = "GNSS";
                         _sensor_id = id;
 
@@ -65,7 +63,7 @@ namespace artslam
                      *
                      * @param mt_nh ROS Node Handler reference
                      */
-                    void setSubscriber(ros::NodeHandle* mt_nh)
+                    void setSubscribers(ros::NodeHandle* mt_nh)
                     {
                         sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::lots::wrapper::Gnss::callback, this);
                     };

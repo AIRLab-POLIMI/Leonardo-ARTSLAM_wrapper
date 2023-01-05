@@ -29,9 +29,11 @@
 #include <ros/ros.h>
 #include <ros/subscriber.h>
 #include <boost/algorithm/string.hpp>
+#include <nav_msgs/Odometry.h>
 
 // TF libraries
 #include <tf/transform_listener.h>
+#include <tf_conversions/tf_eigen.h>
 
 namespace artslam
 {
@@ -49,20 +51,18 @@ namespace artslam
             {
                 protected:
                     /* Attributes ----------------------------------------------------------------------------------- */
-                    bool _prefilterer;
-                    bool _tracker;
-                    bool _ground_detector;
-
                     std::string _sensor_type;
                     int _sensor_id;
 
                     std::string _topic;
+                    std::string _prior_odom_topic = "/0";
                     int _buffer;
                     tf::TransformListener* tf_listener;
 
                 public:
                     /* Attributes ----------------------------------------------------------------------------------- */
                     ros::Subscriber sensor_sub;
+                    ros::Subscriber prior_odom_sub;
                     int counter = 0;
 
                     std::string _start_color;
@@ -75,6 +75,10 @@ namespace artslam
                     /* Methods -------------------------------------------------------------------------------------- */
                     Sensor(){};
 
+                    void set_prior_odom_topic(std::string topic) {
+                        _prior_odom_topic = topic;
+                    }
+
                     /**
                      * Sensor callback for the subscriber interaction.
                      *
@@ -83,11 +87,18 @@ namespace artslam
                     virtual void callback(const SensorMsgType& msg) = 0;
 
                     /**
+                     * Sensor callback for the prior odom topic stram.
+                     *
+                     * @param msg Odometry message.
+                     */
+                    void prior_odom_callback(const nav_msgs::OdometryConstPtr& msg) {};
+
+                    /**
                      * Method in charge to initialize the sensor ROS subscriber.
                      *
                      * @param mt_nh ROS Node Handler reference
                      */
-                    virtual void setSubscriber(ros::NodeHandle* mt_nh) = 0;
+                    virtual void setSubscribers(ros::NodeHandle* mt_nh) = 0;
 
                     /**
                      * Method which initialize the front-end related to the current sensor by plugging the back-end and
@@ -107,7 +118,12 @@ namespace artslam
                         std::cout << _start_color << std::endl;
                         std::cout << title << std::endl;
                         std::cout << "- ROS topic name: " << _topic << std::endl;
+                        if (_prior_odom_topic != "/0") {
+                            std::cout << "- ROS prior odom topic name: " << _prior_odom_topic << std::endl;
+                        }
                         std::cout << "- ROS buffer size: " << _buffer << std::endl;
+                        std::cout << std::endl;
+
                         std::string sensor_type =  boost::algorithm::to_lower_copy(_sensor_type);
                         frontend.start(config_file, sensor_type, _sensor_id);
                         std::cout << _end_color;
@@ -116,7 +132,7 @@ namespace artslam
                         setBackEnd(backend);
 
                         /* ROS-Subscribers */
-                        setSubscriber(mt_nh);
+                        setSubscribers(mt_nh);
                     }
 
                     /**

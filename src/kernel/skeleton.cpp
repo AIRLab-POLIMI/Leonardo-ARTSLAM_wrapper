@@ -45,6 +45,7 @@ namespace artslam
              */
             void Skeleton::start(ros::NodeHandle* mt_nh, BridgeVisualizer* bridge, std::string config_file)
             {
+                std::string tmp_prior_odom_topic;
                 int lidar_count = parse_num_sensors(config_file, "lidar");
                 int camera_count = parse_num_sensors(config_file, "camera");
                 int odom_count = parse_num_sensors(config_file, "odom");
@@ -74,6 +75,10 @@ namespace artslam
                     if (parse_sensor_availability(config_file, "lidar", i))
                     {
                         addLidar(i, parse_sensor_topic(config_file, "lidar", i), parse_sensor_buffer(config_file, "lidar", i));
+                        tmp_prior_odom_topic = parse_prior_odom_topic(config_file, "lidar", i);
+                        if (tmp_prior_odom_topic != "/0") {
+                            lidar_list[i].set_prior_odom_topic(tmp_prior_odom_topic);
+                        }
                         lidar_list[i].start(mt_nh, &backend, config_file);
                         backend.backend_handler->add_sensor_graph("lidar", i);
                     }
@@ -153,7 +158,6 @@ namespace artslam
                     {
                         addOdom(i, parse_sensor_topic(config_file, "odom", i), parse_sensor_buffer(config_file, "odom", i));
                         odom_list[i].start(mt_nh, &backend, config_file);
-                        odom_list[i].addPriorSensor(&lidar_list[0]);
                         backend.backend_handler->add_sensor_graph("odom", i);
                     }
                     else

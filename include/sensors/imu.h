@@ -27,12 +27,14 @@
 
 // ROS messages
 #include <sensor_msgs/Imu.h>
+#include <nav_msgs/Odometry.h>
 
 // TFs libraries
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf_conversions/tf_eigen.h>
 #include <tf/transform_listener.h>
+#include <tf_conversions/tf_eigen.h>
 
 
 namespace artslam
@@ -51,10 +53,6 @@ namespace artslam
                 public:
                     Imu(tf::TransformListener* _tf_listener, int id, std::string topic, int buffer)
                     {
-                        _prefilterer = true;
-                        _tracker = false;
-                        _ground_detector = false;
-
                         _sensor_type = "IMU";
                         _sensor_id = id;
 
@@ -66,7 +64,7 @@ namespace artslam
                         tf_listener = _tf_listener;
                     };
 
-                    void setSubscriber(ros::NodeHandle* mt_nh)
+                    void setSubscribers(ros::NodeHandle* mt_nh)
                     {
                         sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::lots::wrapper::Imu::callback, this);
                     };

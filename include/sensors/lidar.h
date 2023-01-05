@@ -27,9 +27,11 @@
 
 // ROS messages
 #include <sensor_msgs/PointCloud2.h>
+#include <nav_msgs/Odometry.h>
 
 // PCL libraries
 #include <pcl_conversions/pcl_conversions.h>
+#include <tf_conversions/tf_eigen.h>
 
 
 namespace artslam
@@ -48,10 +50,6 @@ namespace artslam
                 public:
                     Lidar(int id, std::string topic, int buffer)
                     {
-                        _prefilterer = true;
-                        _tracker = true;
-                        _ground_detector = true;
-
                         _sensor_type = "LIDAR";
                         _sensor_id = id;
 
@@ -67,9 +65,14 @@ namespace artslam
                      *
                      * @param mt_nh ROS Node Handler reference
                      */
-                    void setSubscriber(ros::NodeHandle* mt_nh)
+                    void setSubscribers(ros::NodeHandle* mt_nh)
                     {
                         sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::lots::wrapper::Lidar::callback, this);
+                        if (_prior_odom_topic != "/0") {
+                            prior_odom_sub = mt_nh->subscribe(_prior_odom_topic, _buffer,
+                                                              &artslam::lots::wrapper::Lidar::prior_odom_callback,
+                                                              this);
+                        }
                     };
 
                     /**
@@ -85,6 +88,28 @@ namespace artslam
                         cloud->header.stamp = msg->header.stamp.toNSec();
                         (static_cast<LidarPrefilterer*>(frontend.modules["prefilterer"].get()))->update_raw_pointcloud_observer(cloud);
                         counter++;
+                    };
+
+                    /**
+                     * Sensor callback for the prior odom topic stram.
+                     *
+                     * @param msg Odometry message.
+                     */
+                    void prior_odom_callback(const nav_msgs::OdometryConstPtr& msg) {
+                        tf::Pose tf_pose;
+                        Eigen::Isometry3d i3d;
+                        tf::poseMsgToTF(msg->pose.pose, tf_pose);
+                        tf::poseTFToEigen(tf_pose, i3d);
+
+                        OdometryStamped3D_MSG::Ptr odom_msg(new OdometryStamped3D_MSG());
+                        odom_msg->header_.timestamp_ = msg->header.stamp.toNSec();
+                        odom_msg->header_.frame_id_ = "base_link";
+                        odom_msg->header_.sensor_type_ = boost::algorithm::to_lower_copy(_sensor_type);;
+                        odom_msg->header_.sensor_id_ = _sensor_id;
+                        odom_msg->odometry_ = i3d.matrix().cast<float>();
+                        odom_msg->covariance_ = Eigen::MatrixXd::Map(&(msg->pose.covariance[0]), 6, 6);
+
+                        (static_cast<LidarTracker*>(frontend.modules["tracker"].get()))->update_prior_odometry_observer(odom_msg);
                     };
             };
         }

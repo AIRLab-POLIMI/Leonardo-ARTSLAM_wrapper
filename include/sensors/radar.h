@@ -27,9 +27,11 @@
 
 // ROS messages
 #include <sensor_msgs/PointCloud2.h>
+#include <nav_msgs/Odometry.h>
 
 // PCL libraries
 #include <pcl_conversions/pcl_conversions.h>
+#include <tf_conversions/tf_eigen.h>
 
 
 namespace artslam
@@ -48,10 +50,6 @@ namespace artslam
                 public:
                     Radar(int id, std::string topic, int buffer)
                     {
-                        _prefilterer = true;
-                        _tracker = true;
-                        _ground_detector = true;
-
                         _sensor_type = "RADAR";
                         _sensor_id = id;
 
@@ -67,7 +65,7 @@ namespace artslam
                      *
                      * @param mt_nh ROS Node Handler reference
                      */
-                    void setSubscriber(ros::NodeHandle* mt_nh)
+                    void setSubscribers(ros::NodeHandle* mt_nh)
                     {
                         sensor_sub = mt_nh->subscribe(_topic, _buffer, &artslam::lots::wrapper::Radar::callback, this);
                     };
@@ -81,6 +79,29 @@ namespace artslam
                     {
                         ;
                     };
+
+                /**
+                 * Sensor callback for the prior odom topic stram.
+                 *
+                 * @param msg Odometry message.
+                 */
+                void prior_odom_callback(const nav_msgs::OdometryConstPtr& msg) {
+                    tf::Pose tf_pose;
+                    Eigen::Isometry3d i3d;
+                    tf::poseMsgToTF(msg->pose.pose, tf_pose);
+                    tf::poseTFToEigen(tf_pose, i3d);
+
+                    OdometryStamped3D_MSG::Ptr odom_msg(new OdometryStamped3D_MSG());
+                    odom_msg->header_.timestamp_ = msg->header.stamp.toNSec();
+                    odom_msg->header_.frame_id_ = "base_link";
+                    odom_msg->header_.sensor_type_ = boost::algorithm::to_lower_copy(_sensor_type);;
+                    odom_msg->header_.sensor_id_ = _sensor_id;
+                    odom_msg->odometry_ = i3d.matrix().cast<float>();
+                    odom_msg->covariance_ = Eigen::MatrixXd::Map(&(msg->pose.covariance[0]), 6, 6);
+
+                    //TODO: uncomment it when it is ready
+                    //(static_cast<CameraTracker*>(frontend.modules["tracker"].get()))->update_prior_odometry_observer(odom_msg);
+                };
             };
         }
     }
