@@ -113,6 +113,7 @@ namespace artslam
                 else if (sensor == "odom") {
                     modules["tracker"] = std::make_shared<OdomTracker>(config);
                     modules["tracker"]->set_id("odom", id);
+                    //(static_cast<LidarTracker*>(modules["tracker"].get()))->register_odometry_observer(static_cast<OdomTracker*>(modules["tracker"].get()));
                 } else
                     std::cout << "[ERROR] Tracker module for " << sensor << " sensor does not exist!" << std::endl;
 

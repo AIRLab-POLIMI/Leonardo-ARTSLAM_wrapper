@@ -49,7 +49,7 @@ namespace artslam
 
                 mt_nh = getMTNodeHandle();
                 bridge.set_handler(mt_nh);
-                bridge.set_main_reference(parse_main_tf_reference(config_file));
+                bridge.set_main_reference(parse_tf_base(config_file, "root2base", "base"));
                 skeleton.start(&mt_nh, &bridge, config_file);
             }
 

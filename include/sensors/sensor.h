@@ -110,6 +110,7 @@ namespace artslam
                      */
                     void start(ros::NodeHandle* mt_nh, Backend* backend, std::string config_file)
                     {
+                        std::string sensor_type = boost::algorithm::to_lower_copy(_sensor_type);
                         std::string welcome = " " + _sensor_type + " #" + std::to_string(_sensor_id) + " ";
                         std::string title(100, '=');
                         title.replace((int)(title.length() / 2 - (int)(welcome.length() / 2)), welcome.length(), welcome);
@@ -122,17 +123,20 @@ namespace artslam
                             std::cout << "- ROS prior odom topic name: " << _prior_odom_topic << std::endl;
                         }
                         std::cout << "- ROS buffer size: " << _buffer << std::endl;
+                        std::cout << "- T(" << sensor_type << "_" << std::to_string(_sensor_id) << "->base)   [ R | t ] " << std::endl;
+                        std::cout << backend->backend_handler->converter.get_sensor2base_tf(sensor_type, _sensor_id).matrix() << std::endl;
                         std::cout << std::endl;
 
-                        std::string sensor_type =  boost::algorithm::to_lower_copy(_sensor_type);
                         frontend.start(config_file, sensor_type, _sensor_id);
-                        std::cout << _end_color;
 
                         /* back-end */
                         setBackEnd(backend);
 
                         /* ROS-Subscribers */
                         setSubscribers(mt_nh);
+
+                        std::cout << _end_color;
+                        std::cout << std::endl;
                     }
 
                     /**
@@ -154,6 +158,7 @@ namespace artslam
                     void setBackEnd(Backend* _backend) {
                         backend = _backend;
                         std::string sensor_type = boost::algorithm::to_lower_copy(_sensor_type);
+
                         if (frontend.modules.find("tracker") != frontend.modules.end()){
                             if (sensor_type == "lidar")
                                 (static_cast<LidarTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(
@@ -161,10 +166,14 @@ namespace artslam
                             else if (sensor_type == "odom")
                                 (static_cast<OdomTracker*>(frontend.modules["tracker"].get()))->register_keyframe_observer(
                                         backend->backend_handler.get());
+                            std::cout << "[BackendHandler] Registered to the Tracker!" << std::endl;
                         }
 
-                        if (frontend.modules.find("ground_detector") != frontend.modules.end())
-                            (static_cast<LidarGroundDetector*>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(backend->backend_handler.get());
+                        if (frontend.modules.find("ground_detector") != frontend.modules.end()) {
+                            (static_cast<LidarGroundDetector*>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(
+                                    backend->backend_handler.get());
+                            std::cout << "[BackendHandler] Registered to the GroundDetector!" << std::endl;
+                        }
                     };
             };
         }

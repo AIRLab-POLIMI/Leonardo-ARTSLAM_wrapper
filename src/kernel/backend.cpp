@@ -50,6 +50,7 @@ namespace artslam
                 std::cout << std::endl << ">> BACKEND-HANDLER" << std::endl;
                 BackendHandler::Configuration bh_config = parse_backend_handler_configuration(config_file);
                 backend_handler = std::make_shared<BackendHandler>(bh_config);
+                backend_handler->set_converter(config_file);
 
                 // building up everything together
                 backend_handler->set_graph_handler(graph_handler.get());

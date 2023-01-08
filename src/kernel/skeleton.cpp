@@ -168,7 +168,7 @@ namespace artslam
                 odom_count -= sub_disabled;
 
                 // linking back-end with loop detectors
-                backend.backend_handler->set_loop_detector(loop_detector_list[0].loop_detector.get());
+                //backend.backend_handler->set_loop_detector(loop_detector_list[0].loop_detector.get());
 
                 std::string camera_start = (camera_count > 0) ? camera_list[0]._start_color : "";
                 std::string lidar_start = (lidar_count > 0) ? lidar_list[0]._start_color : "";
