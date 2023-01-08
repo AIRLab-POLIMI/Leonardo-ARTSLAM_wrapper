@@ -61,7 +61,7 @@ namespace artslam
              * @return true
              */
             bool Controller::offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
-                                                 artslam_wrapper::OfflineSLAM::Response &res)
+                                          artslam_wrapper::OfflineSLAM::Response &res)
             {
                 skeleton.backend.backend_handler->save_results(results_path);
                 return true;
