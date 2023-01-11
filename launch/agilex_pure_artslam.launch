@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- prefiltering_nodelet -->
+	<node pkg="artslam_wrapper" type="artslam_wrapper_node" name="wrapper_controller" output="screen">
+		<!--remap from="/os_cloud_node/points" to="/cloud" />
+		<remap from="/mavros/imu/data_raw" to="/imu/fixed" />
+		<remap from="/fix" to="/gps"/-->
+		<param name="configuration_file" value="$(find artslam)/configs/agilex.json"/> <!--$(find easymile)/config/easymile.json-->
+		<param name="results_path" value="$(find artslam)/result/"/>
+	</node>
+
+<!--	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find artslam_laser_3d_wrapper)/rviz/basic_visualization.rviz" />-->
+</launch>

@@ -60,12 +60,8 @@
 #include <utils/configuration_parser.h>
 
 
-namespace artslam
+namespace artslam::lots::wrapper
 {
-    namespace lots
-    {
-        namespace wrapper
-        {
             /**
              * Controller
              *
@@ -73,7 +69,7 @@ namespace artslam
              * ARTSLAM kernel with the desired sensors by allocating front-ends and also the desired loop detectors.
              * The controller is also in charge to manage the bridge-visualizer.
              */
-            class Controller : public nodelet::Nodelet
+            class Controller
             {
                 private:
                     /* Attributes ----------------------------------------------------------------------------------- */
@@ -90,19 +86,12 @@ namespace artslam
                     // wrapper main components
                     BridgeVisualizer bridge;
                     Skeleton skeleton;
-
-                    /* Methods -------------------------------------------------------------------------------------- */
-                    void get_filepaths(const std::string &path, const std::string &extension,
-                                       std::vector<std::string> &filepaths);
-                public:
+            public:
                     /* Methods -------------------------------------------------------------------------------------- */
                     Controller();
-                    void onInit();
                     bool offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
                                       artslam_wrapper::OfflineSLAM::Response &res);
             };
-        }
-    }
 }
 
 #endif // WRAPPER_CONTROLLER_H

@@ -22,12 +22,8 @@
  */
 #include "kernel/skeleton.h"
 
-namespace artslam
+namespace artslam::lots::wrapper
 {
-    namespace lots
-    {
-        namespace wrapper
-        {
             void print_header(std::string text)
             {
                 std::string title(100, '#');
@@ -243,5 +239,3 @@ namespace artslam
                              "\t\t\t\t\t:-=*##%@@@@@@@@%##*=-:  " << std::endl;
             }
         }
-    }
-}

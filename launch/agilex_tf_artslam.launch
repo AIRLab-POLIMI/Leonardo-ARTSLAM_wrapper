@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- transformation between lidar and base_link 1.57079632679-->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="odom2map_publisher" args="0 0 0 0 0 0 map odom" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="odom_to_scout_link" args="0 0 0 0 0 0 odom scout_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="scout_link_to_base_link" args="0 0 0 0 0 0 scout_link base_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_cloud" args="0.0 0.0 0.0 0.0 0.0 0.0 1.0 base_link os_sensor" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_imu" args="0.0 0.0 0.0 0.0 0.0 1.57079632679 base_link pixhawk_imu" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_gps" args="0.0 0.0 0.0 0.0 0.0 1.0 base_link reach_rs" />
+	
+	<!--odometry-->
+	<!--node pkg="odom_gen" name="odom_gen" type="odom_gen" output="screen" clear_params="true" >
+		<rosparam command="load" file="$(find easymile)/config/odom_gen.yaml"/> 
+	</node-->
+<!--	<node pkg="odom_gen" name="gps_repub" type="gps_repub" output="screen" clear_params="true" >
+		<rosparam command="load" file="$(find easymile)/config/agilex_gps_repub_comp.yaml"/> 
+		<param name="method" value="skip"/>
+	</node>-->
+<!--	<node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_madgwick" clear_params="true" >-->
+<!--	<remap from="imu/data" to="imu/fixed"/>-->
+<!--            <remap from="imu/data_raw" to="imu/data"/>-->
+<!--            <rosparam command="load" file="$(find easymile)/config/imu_fusion.yaml"/>     -->
+<!--    </node>-->
+    	<!--node pkg="robot_localization" type="ekf_localization_node" name="ekf_loc" clear_params="true" output="screen" >
+		<remap from="/odometry/filtered" to="/odometry/local"/>
+        <rosparam command="load" file="$(find easymile)/config/ekf_loc.yaml"/> 
+	</node-->
+
+<!--	pointcloud-->
+	<!--node pkg="ira_laser_tools" name="laserscan_multi_merger" type="laserscan_multi_merger" output="screen" clear_params="true" >
+                <rosparam command="load" file="$(find easymile)/config/laser_merger3.yaml"/>   
+	</node>
+	<node pkg="pcl_assembler" name="laser_converter" type="laser_to_pcl" output="screen" clear_params="true">
+		<param name="topic" value="/scan_sxx"/>
+	</node>
+	<node pkg="pcl_assembler" name="assembler" type="assembler" output="screen" clear_params="true">
+		<param name="input_topics" value="/scan_sxx/cloud /os_cloud_node/points"/>
+		<param name="output_topic" value="/cloud"/>
+		<param name="output_frame_id" value="base_link"/>
+	</node-->
+
+
+<!--	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find artslam_laser_3d_wrapper)/rviz/basic_visualization.rviz" />-->
+</launch>
