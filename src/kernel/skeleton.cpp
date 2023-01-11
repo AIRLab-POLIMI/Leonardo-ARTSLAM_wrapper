@@ -168,7 +168,7 @@ namespace artslam
                 odom_count -= sub_disabled;
 
                 // linking back-end with loop detectors
-                (static_cast<LidarTracker*>(lidar_list[0].frontend.modules["tracker"].get()))->register_odometry_observer(static_cast<OdomTracker*>(odom_list[0].frontend.modules["tracker"].get()));
+                //(static_cast<LidarTracker*>(lidar_list[0].frontend.modules["tracker"].get()))->register_odometry_observer(static_cast<OdomTracker*>(odom_list[0].frontend.modules["tracker"].get()));
                 backend.backend_handler->set_loop_detector(loop_detector_list[0].loop_detector.get());
 
                 std::string camera_start = (camera_count > 0) ? camera_list[0]._start_color : "";
