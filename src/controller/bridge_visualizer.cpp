@@ -163,6 +163,9 @@ namespace artslam::lots::wrapper
     {
         // pointcloud message
         sensor_msgs::PointCloud2Ptr pointcloud_msg(new sensor_msgs::PointCloud2());
+        ros::Time stamp;
+        stamp.sec = map->header.stamp / 1000000ull;
+        stamp.nsec = (map->header.stamp * 1000ull) % 1000000000ull;
         map->header.stamp /= 1000ull;
         pcl::toROSMsg(*map, *pointcloud_msg);
         pointcloud_msg->header.frame_id = "map";
@@ -172,7 +175,7 @@ namespace artslam::lots::wrapper
         nav_msgs::OccupancyGridPtr occupancy_grid_msg(new nav_msgs::OccupancyGrid());
         occupancy_grid_msg->header.frame_id = "map";
         occupancy_grid_msg->header.seq = 0;
-        occupancy_grid_msg->header.stamp = pointcloud_msg->header.stamp;
+        occupancy_grid_msg->header.stamp = stamp;
         occupancy_grid_msg->info.resolution = occupancy_grid->resolution_;
         occupancy_grid_msg->info.width = occupancy_grid->width_;
         occupancy_grid_msg->info.height = occupancy_grid->height_;
@@ -286,6 +289,7 @@ namespace artslam::lots::wrapper
             tf_stamped.header.frame_id = "map";
             tf_stamped.child_frame_id = "odom";
             tf2::convert(latest_tf_.inverse(), tf_stamped.transform);
+            tf_stamped.header.stamp = stamp;
             tf_broadcaster.sendTransform(tf_stamped);
         }
         catch (tf2::TransformException)

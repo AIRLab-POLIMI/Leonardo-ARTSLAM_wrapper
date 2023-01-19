@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   artslam
   ndt_omp
   fast_gicp
-  nodelet
   geodesy
   nmea_msgs
   sensor_msgs
