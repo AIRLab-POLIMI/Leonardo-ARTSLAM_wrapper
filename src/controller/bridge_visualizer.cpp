@@ -55,6 +55,7 @@ namespace artslam::lots::wrapper
         pointcloud_pub = handler.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, 1);
         pose_pub = handler.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC, 10);
         occgrid_map_pub = handler.advertise<nav_msgs::OccupancyGrid>(OCCUPANCYGRID_TOPIC, 1);
+        tf_pub = handler.createTimer(ros::Duration(0.1), &BridgeVisualizer::timer_callback, this);
 
         // Initial TF configuration message map->odom
         geometry_msgs::TransformStamped init_msg;
@@ -67,40 +68,11 @@ namespace artslam::lots::wrapper
         tf_broadcaster.sendTransform(init_msg);
     }
 
-    /**
-     * Initialize the bridge-visualizer for ARTSLAM-ROS functionalities.
-     *
-     * @param nh ROS node handler address already existent.
-     */
-    BridgeVisualizer::BridgeVisualizer(ros::NodeHandle &nh) : tf_listener(tf_buffer)
-    {
-        main_reference = "base_link";
-
-        // Setting the ROS handler
-        set_handler(nh);
-
-        // Dispatcher initialization for the visualizer
-        dispatcher = std::make_unique<core::utils::Dispatcher>(MODULE_ID, 1);
-
-        // ROS Publishers initialization
-        markers_pub = handler.advertise<visualization_msgs::MarkerArray>(MARKER_TOPIC, 16);
-        pointcloud_pub = handler.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, 1);
-        pose_pub = handler.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC, 10);
-        occgrid_map_pub = handler.advertise<nav_msgs::OccupancyGrid>(OCCUPANCYGRID_TOPIC, 1);
-
-        // Initial TF configuration message map->odom
-        geometry_msgs::TransformStamped init_msg;
-        init_msg.header.stamp = ros::Time::now();
-        init_msg.header.frame_id = "map";
-        init_msg.child_frame_id = "odom";
-        init_msg.transform.translation.x = init_msg.transform.translation.y = init_msg.transform.translation.z = 0;
-        init_msg.transform.rotation.x = init_msg.transform.rotation.y = init_msg.transform.rotation.z = 0;
-        init_msg.transform.rotation.w = 1;
-        tf_broadcaster.sendTransform(init_msg);
-    }
-
-    void BridgeVisualizer::set_main_reference(std::string tf_name) {
-        main_reference = tf_name;
+    void BridgeVisualizer::timer_callback(const ros::TimerEvent& event) {
+        if(!latest_transform.header.frame_id.empty()) {
+            latest_transform.header.stamp = ros::Time::now() + ros::Duration(0.2);
+            tf_broadcaster.sendTransform(latest_transform);
+        }
     }
 
     /**
@@ -164,11 +136,12 @@ namespace artslam::lots::wrapper
         // pointcloud message
         sensor_msgs::PointCloud2Ptr pointcloud_msg(new sensor_msgs::PointCloud2());
         ros::Time stamp;
-        stamp.sec = map->header.stamp / 1000000ull;
-        stamp.nsec = (map->header.stamp * 1000ull) % 1000000000ull;
+        stamp.sec = map->header.stamp / 1000000000ull;
+        stamp.nsec = map->header.stamp % 1000000000ull;
         map->header.stamp /= 1000ull;
         pcl::toROSMsg(*map, *pointcloud_msg);
         pointcloud_msg->header.frame_id = "map";
+        pointcloud_msg->header.stamp = stamp;
         pointcloud_pub.publish(pointcloud_msg);
 
         // occupancy grid message
@@ -245,7 +218,7 @@ namespace artslam::lots::wrapper
         map2odom.transform.rotation.w = q_.getW();
 
         // pose message
-        geometry_msgs::PoseStamped pose_, pose_t;
+        geometry_msgs::PoseStamped pose_;
         pose_.header = map2odom.header;
         pose_.pose.position.x = map2odom.transform.translation.x;
         pose_.pose.position.y = map2odom.transform.translation.y;
@@ -254,43 +227,27 @@ namespace artslam::lots::wrapper
         pose_pub.publish(pose_);
 
         try{
-            // adjust TF pose from odom to map reference frame
-            geometry_msgs::PoseStamped odom2map;
-            tf2::Transform latest_tf_;
+            tf2::Quaternion qq(pose_.pose.orientation.x,
+                               pose_.pose.orientation.y,
+                               pose_.pose.orientation.z,
+                               pose_.pose.orientation.w);
 
-            // orientation of the last marker
-            tf2::Quaternion q(pose_.pose.orientation.x, pose_.pose.orientation.y,
-                              pose_.pose.orientation.z, pose_.pose.orientation.w);
 
-            if (true) // TODO: remove it if you want 3D
-            {
-                double roll, pitch, yaw;
-                tf2::Matrix3x3 M;
-                M.setRotation(q);
-                M.getRPY(roll, pitch, yaw);
-                q.setRPY(0, 0, yaw);
-                pose_.pose.position.z = 0;
-            }
+            tf2::Stamped<tf2::Transform> base_to_map(tf2::Transform(qq,tf2::Vector3(pose_.pose.position.x,
+                                                                                    pose_.pose.position.y,0.0)).inverse(),
+                                                     stamp,
+                                                     "base_link");
 
-            // temporary tf
-            tf2::Transform tmp_tf(q, tf2::Vector3(pose_.pose.position.x, pose_.pose.position.y, pose_.pose.position.z));
 
-            // first phase
-            geometry_msgs::PoseStamped tmp_tf_stamped;
-            tmp_tf_stamped.header.frame_id = main_reference;
-            tmp_tf_stamped.header.stamp = pose_.header.stamp;
-            tf2::toMsg(tmp_tf.inverse(), tmp_tf_stamped.pose);
-            tf_buffer.transform(tmp_tf_stamped, odom2map, "odom");
-            tf2::convert(odom2map.pose, latest_tf_);
+            geometry_msgs::TransformStamped base_to_map_msg, odom_to_map_msg;
+            tf2::convert(base_to_map, base_to_map_msg);
+            odom_to_map_msg = tf_buffer.transform(base_to_map_msg, "odom");
+            tf2::Stamped<tf2::Transform> odom_to_map;
+            tf2::convert(odom_to_map_msg, odom_to_map);
 
-            // second phase
-            geometry_msgs::TransformStamped tf_stamped;
-            tf_stamped.header.stamp = pose_.header.stamp;
-            tf_stamped.header.frame_id = "map";
-            tf_stamped.child_frame_id = "odom";
-            tf2::convert(latest_tf_.inverse(), tf_stamped.transform);
-            tf_stamped.header.stamp = stamp;
-            tf_broadcaster.sendTransform(tf_stamped);
+            tf2::convert(odom_to_map.inverse(), latest_transform.transform);
+            latest_transform.header.frame_id = "map";
+            latest_transform.child_frame_id = "odom";
         }
         catch (tf2::TransformException)
         {
@@ -307,40 +264,40 @@ namespace artslam::lots::wrapper
      * @param child_frame_id Child Frame ID of the considered TF dest.
      * @return Odometry transformation
      */
-    geometry_msgs::TransformStamped BridgeVisualizer::matrix2transform(
-            const ros::Time& stamp,
-            const Eigen::Matrix4f& pose,
-            const std::string& frame_id,
-            const std::string& child_frame_id)
-    {
-        // Current pose expressed in a roto-translation matrix converted into quaternion for the rotation component.
-        Eigen::Quaternionf quat(pose.block<3, 3>(0, 0));
-        quat.normalize();
-
-        // odometry output to be prepared
-        geometry_msgs::Quaternion odom_quat;
-
-        // current quaternion rotation
-        odom_quat.w = quat.w();
-        odom_quat.x = quat.x();
-        odom_quat.y = quat.y();
-        odom_quat.z = quat.z();
-
-        // odometry transformation message to be returned
-        geometry_msgs::TransformStamped odom_trans;
-        odom_trans.header.stamp = stamp;
-        odom_trans.header.frame_id = frame_id;
-        odom_trans.child_frame_id = child_frame_id;
-
-        // translation
-        odom_trans.transform.translation.x = pose(0, 3);
-        odom_trans.transform.translation.y = pose(1, 3);
-        odom_trans.transform.translation.z = pose(2, 3);
-
-        // rotation
-        odom_trans.transform.rotation = odom_quat;
-
-        // output transformation message
-        return odom_trans;
-    }
+//    geometry_msgs::TransformStamped BridgeVisualizer::matrix2transform(
+//            const ros::Time& stamp,
+//            const Eigen::Matrix4f& pose,
+//            const std::string& frame_id,
+//            const std::string& child_frame_id)
+//    {
+//        // Current pose expressed in a roto-translation matrix converted into quaternion for the rotation component.
+//        Eigen::Quaternionf quat(pose.block<3, 3>(0, 0));
+//        quat.normalize();
+//
+//        // odometry output to be prepared
+//        geometry_msgs::Quaternion odom_quat;
+//
+//        // current quaternion rotation
+//        odom_quat.w = quat.w();
+//        odom_quat.x = quat.x();
+//        odom_quat.y = quat.y();
+//        odom_quat.z = quat.z();
+//
+//        // odometry transformation message to be returned
+//        geometry_msgs::TransformStamped odom_trans;
+//        odom_trans.header.stamp = stamp;
+//        odom_trans.header.frame_id = frame_id;
+//        odom_trans.child_frame_id = child_frame_id;
+//
+//        // translation
+//        odom_trans.transform.translation.x = pose(0, 3);
+//        odom_trans.transform.translation.y = pose(1, 3);
+//        odom_trans.transform.translation.z = pose(2, 3);
+//
+//        // rotation
+//        odom_trans.transform.rotation = odom_quat;
+//
+//        // output transformation message
+//        return odom_trans;
+//    }
 }

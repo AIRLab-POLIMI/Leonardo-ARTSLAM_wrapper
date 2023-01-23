@@ -33,7 +33,7 @@ namespace artslam::lots::wrapper
         service = private_nh.advertiseService("OfflineSLAM", &Controller::offline_slam, this);
 
         bridge.set_handler(mt_nh);
-        bridge.set_main_reference(parse_tf_base(config_file, "root2base", "base"));
+        bridge.main_reference = parse_tf_base(config_file, "root2base", "base");
         skeleton.start(&mt_nh, &bridge, config_file);
     }
 
@@ -44,8 +44,7 @@ namespace artslam::lots::wrapper
      * @param res Response
      * @return true
      */
-    bool Controller::offline_slam(artslam_wrapper::OfflineSLAM::Request &req,
-                                  artslam_wrapper::OfflineSLAM::Response &res)
+    bool Controller::offline_slam(artslam_wrapper::OfflineSLAM::Request &req, artslam_wrapper::OfflineSLAM::Response &res)
     {
         skeleton.backend.backend_handler->save_results(results_path);
         return true;

@@ -80,8 +80,6 @@ namespace artslam
                     // Constructor
                     BridgeVisualizer();
 
-                    explicit BridgeVisualizer(ros::NodeHandle &nh);
-
                     // Setter
                     void set_handler(ros::NodeHandle &nh) { handler = nh; };
 
@@ -93,8 +91,7 @@ namespace artslam
                     void update_slam_output_observer(
                             pcl::PointCloud<Point3I>::Ptr map,
                             std::vector <Eigen::Isometry3d> poses,
-                            OccupancyGrid::Ptr occupancy_grid
-                    ) override;
+                            OccupancyGrid::Ptr occupancy_grid) override;
 
                 private:
                     /* Attributes ----------------------------------------------------------------------------------- */
@@ -109,6 +106,10 @@ namespace artslam
                     ros::Publisher pose_pub;
                     ros::Publisher pointcloud_pub;
                     ros::Publisher occgrid_map_pub;
+                    ros::Timer tf_pub;
+
+                    //TF
+                    geometry_msgs::TransformStamped latest_transform;
 
                     /* Methods -------------------------------------------------------------------------------------- */
                     // Drawing method to refresh rviz or foxglove-studio
@@ -116,6 +117,8 @@ namespace artslam
 
                     void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector <EigIsometry3d> poses,
                                             OccupancyGrid::Ptr occupancy_grid);
+
+                    void timer_callback(const ros::TimerEvent& event);
 
                     // Matrix transformation util
                     geometry_msgs::TransformStamped matrix2transform(

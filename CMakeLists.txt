@@ -277,24 +277,3 @@ target_link_libraries(artslam_wrapper_node
         ${Boost_LOG_SETUP_LIBRARIES}
         tbb
         )
-
-#
-#add_library(wrapper_controller
-#        src/controller/controller.cpp
-#        src/controller/bridge_visualizer.cpp
-#        src/kernel/skeleton.cpp
-#        src/kernel/frontend.cpp
-#        src/kernel/backend.cpp
-#        src/kernel/loop_detector.cpp
-#)
-#
-#add_dependencies(wrapper_controller ${catkin_EXPORTED_TARGETS} artslam_wrapper_generate_messages_cpp)
-#
-#target_link_libraries(wrapper_controller
-#        ${catkin_LIBRARIES}
-#        ${PCL_LIBRARIES}
-#        ${Boost_INCLUDE_DIRS}
-#        ${Boost_LOG_LIBRARIES}
-#        ${Boost_LOG_SETUP_LIBRARIES}
-#        tbb
-#        )
