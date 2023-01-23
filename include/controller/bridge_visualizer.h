@@ -41,95 +41,89 @@
 #include <tf2_ros/transform_listener.h>
 
 
-namespace artslam
-{
-    namespace lots
-    {
-        namespace wrapper
-        {
-            /**
-             * ARTSLAMBridgeVisualizer
-             *
-             * Class module in charge of interacting with ARTSLAM observers with respect to the SLAM-Output
-             * (i.e. Map and Poses) through the "SlamOutputObserver" and to the Filtered Pointcloud through the
-             * "FilteredPointcloudObserver".
-             * This interaction with the ARTSLAM architecture is due to the visual monitoring task of this class which
-             * acts as a bridge between ARTSLAM and ROS through a Visualizer tool such as Rviz or Fox Glove Studio.
-             */
-            class BridgeVisualizer :
-                    public FilteredPointcloudObserver,
-                    public SlamOutputObserver {
-                // Constants
-                const std::string MODULE_ID = "VisualizerBridgeDispatcher";
-                const std::string TOPIC_ROOT = "/artslam_wrapper";
-                const std::string POSE_TOPIC = TOPIC_ROOT + "/pose";
-                const std::string POINTCLOUD_TOPIC = TOPIC_ROOT + "/pointcloud";
-                const std::string MARKER_TOPIC = TOPIC_ROOT + "/marker";
-                const std::string OCCUPANCYGRID_TOPIC = TOPIC_ROOT + "/occupancy_grid";
+namespace artslam::lots::wrapper {
+    /**
+     * ARTSLAMBridgeVisualizer
+     *
+     * Class module in charge of interacting with ARTSLAM observers with respect to the SLAM-Output
+     * (i.e. Map and Poses) through the "SlamOutputObserver" and to the Filtered Pointcloud through the
+     * "FilteredPointcloudObserver".
+     * This interaction with the ARTSLAM architecture is due to the visual monitoring task of this class which
+     * acts as a bridge between ARTSLAM and ROS through a Visualizer tool such as Rviz or Fox Glove Studio.
+     */
+    class BridgeVisualizer :
+            public FilteredPointcloudObserver,
+            public SlamOutputObserver {
+        // Constants
+        const std::string MODULE_ID = "VisualizerBridgeDispatcher";
+        const std::string TOPIC_ROOT = "/artslam_wrapper";
+        const std::string POSE_TOPIC = TOPIC_ROOT + "/pose";
+        const std::string POINTCLOUD_TOPIC = TOPIC_ROOT + "/pointcloud";
+        const std::string MARKER_TOPIC = TOPIC_ROOT + "/marker";
+        const std::string OCCUPANCYGRID_TOPIC = TOPIC_ROOT + "/occupancy_grid";
 
-                public:
-                    /* Attributes ----------------------------------------------------------------------------------- */
-                    // TFs
-                    tf2_ros::TransformBroadcaster tf_broadcaster;
-                    tf2_ros::Buffer tf_buffer;
-                    tf2_ros::TransformListener tf_listener;
+    public:
+        /* Attributes ----------------------------------------------------------------------------------- */
+        // TFs
+        tf2_ros::TransformBroadcaster tf_broadcaster;
+        tf2_ros::Buffer tf_buffer;
+        tf2_ros::TransformListener tf_listener;
+        float delay;
 
-                    std::string main_reference;
+        std::string base_frame;
+        std::string odom_frame;
+        std::string global_frame;
 
-                    /* Methods -------------------------------------------------------------------------------------- */
-                    // Constructor
-                    BridgeVisualizer();
+        /* Methods -------------------------------------------------------------------------------------- */
+        // Constructor
+        BridgeVisualizer();
 
-                    // Setter
-                    void set_handler(ros::NodeHandle &nh) { handler = nh; };
+        // Setter
+        void set_handler(ros::NodeHandle &nh) { handler = nh; };
 
-                    void set_main_reference(std::string tf_name);
+        // Observer updating interfaces
+        void update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
 
-                    // Observer updating interfaces
-                    void update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
+        void update_slam_output_observer(
+                pcl::PointCloud<Point3I>::Ptr map,
+                std::vector<Eigen::Isometry3d> poses,
+                OccupancyGrid::Ptr occupancy_grid) override;
 
-                    void update_slam_output_observer(
-                            pcl::PointCloud<Point3I>::Ptr map,
-                            std::vector <Eigen::Isometry3d> poses,
-                            OccupancyGrid::Ptr occupancy_grid) override;
+    private:
+        /* Attributes ----------------------------------------------------------------------------------- */
+        // Core visualization dispatcher
+        std::unique_ptr<artslam::core::utils::Dispatcher> dispatcher;
 
-                private:
-                    /* Attributes ----------------------------------------------------------------------------------- */
-                    // Core visualization dispatcher
-                    std::unique_ptr <artslam::core::utils::Dispatcher> dispatcher;
+        // ROS Node handler
+        ros::NodeHandle handler;
 
-                    // ROS Node handler
-                    ros::NodeHandle handler;
+        // ROS Publishers
+        ros::Publisher markers_pub;
+        ros::Publisher pose_pub;
+        ros::Publisher pointcloud_pub;
+        ros::Publisher occgrid_map_pub;
+        ros::Timer tf_pub;
 
-                    // ROS Publishers
-                    ros::Publisher markers_pub;
-                    ros::Publisher pose_pub;
-                    ros::Publisher pointcloud_pub;
-                    ros::Publisher occgrid_map_pub;
-                    ros::Timer tf_pub;
+        //TF
+        geometry_msgs::TransformStamped latest_transform;
 
-                    //TF
-                    geometry_msgs::TransformStamped latest_transform;
+        /* Methods -------------------------------------------------------------------------------------- */
+        // Drawing method to refresh rviz or foxglove-studio
+        void draw_pointcloud(const pcl::PointCloud<Point3I>::ConstPtr &pointcloud);
 
-                    /* Methods -------------------------------------------------------------------------------------- */
-                    // Drawing method to refresh rviz or foxglove-studio
-                    void draw_pointcloud(const pcl::PointCloud<Point3I>::ConstPtr &pointcloud);
+        void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector<EigIsometry3d> poses,
+                                OccupancyGrid::Ptr occupancy_grid);
 
-                    void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector <EigIsometry3d> poses,
-                                            OccupancyGrid::Ptr occupancy_grid);
+        void timer_callback(const ros::TimerEvent &event);
 
-                    void timer_callback(const ros::TimerEvent& event);
-
-                    // Matrix transformation util
-                    geometry_msgs::TransformStamped matrix2transform(
-                            const ros::Time &stamp,
-                            const Eigen::Matrix4f &pose,
-                            const std::string &frame_id,
-                            const std::string &child_frame_id
-                    );
-            };
-        }
-    }
+        // Matrix transformation util
+        geometry_msgs::TransformStamped matrix2transform(
+                const ros::Time &stamp,
+                const Eigen::Matrix4f &pose,
+                const std::string &frame_id,
+                const std::string &child_frame_id
+        );
+    };
 }
 
 #endif // WRAPPER_BRIDGE_VISUALIZER_H

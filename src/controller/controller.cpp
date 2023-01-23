@@ -30,10 +30,13 @@ namespace artslam::lots::wrapper
         private_nh.getParam("value", param_value);
         private_nh.getParam("configuration_file", config_file);
         private_nh.getParam("results_path", results_path);
+        private_nh.param<std::string>("base_frame", bridge.base_frame, "base_link");
+        private_nh.param<std::string>("global_frame", bridge.global_frame, "map");
+        private_nh.param<std::string>("odom_frame", bridge.odom_frame, "odom");
+        private_nh.param<float>("delay", bridge.delay, 0.2);
         service = private_nh.advertiseService("OfflineSLAM", &Controller::offline_slam, this);
 
         bridge.set_handler(mt_nh);
-        bridge.main_reference = parse_tf_base(config_file, "root2base", "base");
         skeleton.start(&mt_nh, &bridge, config_file);
     }
 

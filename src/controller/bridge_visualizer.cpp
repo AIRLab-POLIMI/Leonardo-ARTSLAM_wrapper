@@ -45,8 +45,6 @@ namespace artslam::lots::wrapper
      */
     BridgeVisualizer::BridgeVisualizer() : tf_listener(tf_buffer)
     {
-        main_reference = "base_link";
-
         // Dispatcher initialization for the visualizer
         dispatcher = std::make_unique<core::utils::Dispatcher>(MODULE_ID, 1);
 
@@ -60,8 +58,8 @@ namespace artslam::lots::wrapper
         // Initial TF configuration message map->odom
         geometry_msgs::TransformStamped init_msg;
         init_msg.header.stamp = ros::Time::now();
-        init_msg.header.frame_id = "map";
-        init_msg.child_frame_id = "odom";
+        init_msg.header.frame_id = global_frame;
+        init_msg.child_frame_id = odom_frame;
         init_msg.transform.translation.x = init_msg.transform.translation.y = init_msg.transform.translation.z = 0;
         init_msg.transform.rotation.x = init_msg.transform.rotation.y = init_msg.transform.rotation.z = 0;
         init_msg.transform.rotation.w = 1;
@@ -70,7 +68,7 @@ namespace artslam::lots::wrapper
 
     void BridgeVisualizer::timer_callback(const ros::TimerEvent& event) {
         if(!latest_transform.header.frame_id.empty()) {
-            latest_transform.header.stamp = ros::Time::now() + ros::Duration(0.2);
+            latest_transform.header.stamp = ros::Time::now() + ros::Duration(delay);
             tf_broadcaster.sendTransform(latest_transform);
         }
     }
@@ -119,7 +117,7 @@ namespace artslam::lots::wrapper
         *pointcloud_pcl = *pointcloud;
         pointcloud_pcl->header.stamp /= 1000ull;
         pcl::toROSMsg(*pointcloud_pcl, *pointcloud_msg);
-        pointcloud_msg->header.frame_id = main_reference;
+        pointcloud_msg->header.frame_id = base_frame;
         pointcloud_pub.publish(pointcloud_msg);
     }
 
@@ -140,13 +138,13 @@ namespace artslam::lots::wrapper
         stamp.nsec = map->header.stamp % 1000000000ull;
         map->header.stamp /= 1000ull;
         pcl::toROSMsg(*map, *pointcloud_msg);
-        pointcloud_msg->header.frame_id = "map";
+        pointcloud_msg->header.frame_id = global_frame;
         pointcloud_msg->header.stamp = stamp;
         pointcloud_pub.publish(pointcloud_msg);
 
         // occupancy grid message
         nav_msgs::OccupancyGridPtr occupancy_grid_msg(new nav_msgs::OccupancyGrid());
-        occupancy_grid_msg->header.frame_id = "map";
+        occupancy_grid_msg->header.frame_id = global_frame;
         occupancy_grid_msg->header.seq = 0;
         occupancy_grid_msg->header.stamp = stamp;
         occupancy_grid_msg->info.resolution = occupancy_grid->resolution_;
@@ -172,7 +170,7 @@ namespace artslam::lots::wrapper
 
         // node markers visualization
         visualization_msgs::Marker& traj_marker = markers.markers[0];
-        traj_marker.header.frame_id = "map";
+        traj_marker.header.frame_id = global_frame;
         traj_marker.header.stamp = ros::Time::now();
         traj_marker.ns = "nodes";
         traj_marker.id = 0;
@@ -181,6 +179,7 @@ namespace artslam::lots::wrapper
         traj_marker.scale.x = traj_marker.scale.y = traj_marker.scale.z = 0.5;
         traj_marker.points.resize(poses.size());
         traj_marker.colors.resize(poses.size());
+
         for(int i = 0; i < poses.size(); i++)
         {
             Eigen::Vector3d pos = poses[i].translation();
@@ -194,110 +193,48 @@ namespace artslam::lots::wrapper
             traj_marker.colors[i].b = 0.0;
             traj_marker.colors[i].a = 1.0;
         }
+        
         markers_pub.publish(markers);
 
-        // map->odom transformation
-        geometry_msgs::TransformStamped map2odom;
-        map2odom.header.frame_id = "map";
-        map2odom.child_frame_id = main_reference;
-        map2odom.transform.translation.x = poses[poses.size()-1].translation().x();
-        map2odom.transform.translation.y = poses[poses.size()-1].translation().y();
-        map2odom.transform.translation.z = poses[poses.size()-1].translation().z();
-        tf2::Matrix3x3 M_(
+        // pose message
+        geometry_msgs::PoseStamped pose_;
+        pose_.header.frame_id = global_frame;
+        pose_.header.stamp = stamp;
+        tf2::Quaternion q_;
+        tf2::Matrix3x3 (
                 poses[poses.size() - 1].rotation().coeff(0, 0), poses[poses.size() - 1].rotation().coeff(0, 1),
                 poses[poses.size() - 1].rotation().coeff(0, 2), poses[poses.size() - 1].rotation().coeff(1, 0),
                 poses[poses.size() - 1].rotation().coeff(1, 1), poses[poses.size() - 1].rotation().coeff(1, 2),
                 poses[poses.size() - 1].rotation().coeff(2, 0), poses[poses.size() - 1].rotation().coeff(2, 1),
                 poses[poses.size() - 1].rotation().coeff(2, 2)
-        );
-        tf2::Quaternion q_;
-        M_.getRotation(q_);
-        map2odom.transform.rotation.x = q_.getX();
-        map2odom.transform.rotation.y = q_.getY();
-        map2odom.transform.rotation.z = q_.getZ();
-        map2odom.transform.rotation.w = q_.getW();
+        ).getRotation(q_);
 
-        // pose message
-        geometry_msgs::PoseStamped pose_;
-        pose_.header = map2odom.header;
-        pose_.pose.position.x = map2odom.transform.translation.x;
-        pose_.pose.position.y = map2odom.transform.translation.y;
-        pose_.pose.position.z = map2odom.transform.translation.z;
-        pose_.pose.orientation = map2odom.transform.rotation;
+        pose_.pose.position.x = poses[poses.size()-1].translation().x();
+        pose_.pose.position.y = poses[poses.size()-1].translation().y();
+        pose_.pose.position.z = poses[poses.size()-1].translation().z();
+        tf2::convert(q_, pose_.pose.orientation);
         pose_pub.publish(pose_);
 
         try{
-            tf2::Quaternion qq(pose_.pose.orientation.x,
-                               pose_.pose.orientation.y,
-                               pose_.pose.orientation.z,
-                               pose_.pose.orientation.w);
-
-
-            tf2::Stamped<tf2::Transform> base_to_map(tf2::Transform(qq,tf2::Vector3(pose_.pose.position.x,
+            tf2::Stamped<tf2::Transform> base_to_map(tf2::Transform(q_,tf2::Vector3(pose_.pose.position.x,
                                                                                     pose_.pose.position.y,0.0)).inverse(),
                                                      stamp,
-                                                     "base_link");
+                                                     base_frame);
 
 
             geometry_msgs::TransformStamped base_to_map_msg, odom_to_map_msg;
             tf2::convert(base_to_map, base_to_map_msg);
-            odom_to_map_msg = tf_buffer.transform(base_to_map_msg, "odom");
+            odom_to_map_msg = tf_buffer.transform(base_to_map_msg, odom_frame);
             tf2::Stamped<tf2::Transform> odom_to_map;
             tf2::convert(odom_to_map_msg, odom_to_map);
 
             tf2::convert(odom_to_map.inverse(), latest_transform.transform);
-            latest_transform.header.frame_id = "map";
-            latest_transform.child_frame_id = "odom";
+            latest_transform.header.frame_id = global_frame;
+            latest_transform.child_frame_id = odom_frame;
         }
         catch (tf2::TransformException)
         {
             std::cerr << "Missing tf!" << std::endl;
         }
     }
-
-    /**
-     * Roto-Translation matrix into an Odometry Transformation message to be applied.
-     *
-     * @param stamp Current timestamp of the Roto-Translation Matrix.
-     * @param pose Current pose.
-     * @param frame_id Frame ID of the considered TF source.
-     * @param child_frame_id Child Frame ID of the considered TF dest.
-     * @return Odometry transformation
-     */
-//    geometry_msgs::TransformStamped BridgeVisualizer::matrix2transform(
-//            const ros::Time& stamp,
-//            const Eigen::Matrix4f& pose,
-//            const std::string& frame_id,
-//            const std::string& child_frame_id)
-//    {
-//        // Current pose expressed in a roto-translation matrix converted into quaternion for the rotation component.
-//        Eigen::Quaternionf quat(pose.block<3, 3>(0, 0));
-//        quat.normalize();
-//
-//        // odometry output to be prepared
-//        geometry_msgs::Quaternion odom_quat;
-//
-//        // current quaternion rotation
-//        odom_quat.w = quat.w();
-//        odom_quat.x = quat.x();
-//        odom_quat.y = quat.y();
-//        odom_quat.z = quat.z();
-//
-//        // odometry transformation message to be returned
-//        geometry_msgs::TransformStamped odom_trans;
-//        odom_trans.header.stamp = stamp;
-//        odom_trans.header.frame_id = frame_id;
-//        odom_trans.child_frame_id = child_frame_id;
-//
-//        // translation
-//        odom_trans.transform.translation.x = pose(0, 3);
-//        odom_trans.transform.translation.y = pose(1, 3);
-//        odom_trans.transform.translation.z = pose(2, 3);
-//
-//        // rotation
-//        odom_trans.transform.rotation = odom_quat;
-//
-//        // output transformation message
-//        return odom_trans;
-//    }
 }
