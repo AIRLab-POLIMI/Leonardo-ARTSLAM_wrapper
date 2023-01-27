@@ -74,7 +74,7 @@ namespace artslam
 
                     void start(ros::NodeHandle* mt_nh, BridgeVisualizer* bridge, std::string config_file);
 
-                    void addLoopDetector(int id) { loop_detector_list.push_back(LoopDetector(id)); };
+                    void addLoopDetector(int id, std::string name) { loop_detector_list.push_back(LoopDetector(id, name)); };
 
                     void addLidar(int id, std::string topic, int buffer) { lidar_list.push_back(Lidar(id, topic, buffer)); };
 

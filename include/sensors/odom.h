@@ -75,7 +75,6 @@ namespace artslam
                      */
                     void callback(const nav_msgs::OdometryConstPtr& msg) override
                     {
-                        return;
                         tf::Pose tf_pose;
                         Eigen::Isometry3d i3d;
                         tf::poseMsgToTF(msg->pose.pose, tf_pose);

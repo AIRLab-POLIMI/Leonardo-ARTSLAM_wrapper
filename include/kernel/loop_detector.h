@@ -45,9 +45,16 @@ namespace artslam
             {
                 public:
                     int _id;
-                    std::shared_ptr<FullLidar> loop_detector;
+                    std::string _name;
+                    std::shared_ptr<artslam::lots::LoopDetector> loop_detector;
 
-                    LoopDetector(int id){ _id = id; };
+                    LoopDetector(int id, std::string name){
+                        _id = id;
+                        _name = name;
+
+                        std::cout << "init: " << _id << "   " << _name << std::endl;
+                    };
+
                     void start(std::string config_file);
             };
         }

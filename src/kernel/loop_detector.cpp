@@ -41,13 +41,24 @@ namespace artslam
                 std::cout << std::endl << title << std::endl;
 
                 /* loop detector */
-                Registration::Configuration loop_detector_registration_configuration =
-                        parse_registration_loop_detector_configuration(config_file, 0);
-                LidarRegistration loop_detector_registration(loop_detector_registration_configuration);
-                artslam::lots::LoopDetector::Configuration loop_detector_configuration =
-                        parse_loop_detector_configuration(config_file, 0);
-                loop_detector = std::make_shared<FullLidar>(loop_detector_configuration,
-                                                               loop_detector_registration.registration_method());
+                if (_name == "full_lidar") {
+                    Registration::Configuration loop_detector_registration_configuration =
+                            parse_registration_loop_detector_configuration(config_file, 0);
+                    LidarRegistration loop_detector_registration(loop_detector_registration_configuration);
+                    artslam::lots::LoopDetector::Configuration loop_detector_configuration =
+                            parse_loop_detector_configuration(config_file, 0);
+                    loop_detector = std::make_shared<FullLidar>(loop_detector_configuration,
+                                                                loop_detector_registration.registration_method());
+                } else if (_name == "deep_radar") {
+                    std::cout << "Deep Radar loop detector not implemented yet!" << std::endl;
+                    loop_detector = nullptr;
+                } else if (_name == "feature_camera") {
+                    std::cout << "Feature Camera loop detector not implemented yet!" << std::endl;
+                    loop_detector = nullptr;
+                } else {
+                    std::cout << "This loop detector name does not exist and it is not implemented, please choose among: 'full_lidar', 'deep_radar', 'feature_camera'." << std::endl;
+                    loop_detector = nullptr;
+                }
             }
         }
     }
