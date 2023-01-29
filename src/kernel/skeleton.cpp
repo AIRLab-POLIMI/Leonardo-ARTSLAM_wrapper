@@ -164,6 +164,7 @@ namespace artslam::lots::wrapper
                 odom_count -= sub_disabled;
 
                 // linking back-end with loop detectors
+                // TODO: fix it also for the radar
                 if (lidar_count > 0)
                     backend.backend_handler->set_loop_detector(loop_detector_list[0].loop_detector.get());
 
