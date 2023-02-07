@@ -57,6 +57,10 @@ endif()
 find_package(G2O REQUIRED)
 include_directories(SYSTEM ${G2O_INCLUDE_DIR} ${G2O_INCLUDE_DIRS})
 
+list(APPEND CMAKE_PREFIX_PATH "/home/mirko/Desktop/Code/Thesis/easymile/src/libtorch")
+find_package(Torch REQUIRED)
+include_directories(${TORCH_INCLUDE_DIRS})
+
 add_service_files(
         FILES
         OfflineSLAM.srv
