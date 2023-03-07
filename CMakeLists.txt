@@ -279,5 +279,6 @@ target_link_libraries(artslam_wrapper_node
         ${Boost_INCLUDE_DIRS}
         ${Boost_LOG_LIBRARIES}
         ${Boost_LOG_SETUP_LIBRARIES}
+        ${OpenCV_LIBRARIES}
         tbb
         )

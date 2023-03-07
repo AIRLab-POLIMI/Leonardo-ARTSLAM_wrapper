@@ -22,8 +22,28 @@
  */
 #include "controller/controller.h"
 
+#include <iostream>
+#include <filesystem>
+#include <algorithm>
+#include <artslam_io/pointcloud_io.h>
+#include <artslam_io/kitti_reader.hpp>
+
+using namespace artslam::core::io;
+
 namespace artslam::lots::wrapper
 {
+    void get_filepaths(const std::string& path, const std::string& extension, std::vector<std::string>& filepaths) {
+        for(const auto& p : std::filesystem::directory_iterator(path)) {
+            if(p.is_regular_file()) {
+                if(p.path().extension().string() == extension) {
+                    filepaths.emplace_back(p.path());
+                }
+            }
+        }
+
+        std::sort(filepaths.begin(), filepaths.end());
+    }
+
     // Initialize the node by reading the configuration file and setting the kernel.
     Controller::Controller() : param_value(0), private_nh("~"), mt_nh()
     {
@@ -38,6 +58,38 @@ namespace artslam::lots::wrapper
 
         bridge.set_handler(mt_nh);
         skeleton.start(&mt_nh, &bridge, config_file);
+
+        // ---------------------------
+//        std::string config_file = "/home/mirko/Desktop/Code/Thesis/easymile/src/ARTSLAM/configs/KITTI_new.json";
+//        std::string save_path = "/home/mirko/Desktop/Code/Thesis/easymile/src/ARTSLAM/results/";
+//        std::vector<std::string> slam_paths = parse_slam_paths(config_file);
+//
+//        // get the filepaths corresponding to the pointclouds
+//        std::vector<std::string> pointclouds_filepaths;
+//        get_filepaths(slam_paths[0], ".bin", pointclouds_filepaths);
+//
+//        // get the filepaths corresponding to IMU and GPS data (KITTI)
+//        std::vector<std::string> oxts_filepaths;
+//        get_filepaths(slam_paths[2], ".txt", oxts_filepaths);
+//
+//        // read the timestamps for both pointclouds, IMU and GPS data (KITTI)
+//        KITTI_Reader kitti_reader({false, boost::log::trivial::trace});
+//        std::vector<uint64_t> timestamps, oxts_timestamps;
+//        kitti_reader.read_timestamps(slam_paths[1], timestamps);
+//        kitti_reader.read_timestamps(slam_paths[3], oxts_timestamps);
+//
+//        // perform SLAM, playing back
+//        for(int i = 0; i < pointclouds_filepaths.size(); i++) {
+//            pcl::PointCloud<Point3I>::Ptr pointcloud = kitti_reader.read_pointcloud(pointclouds_filepaths[i]);
+//            pointcloud->header.frame_id = "";
+//            pointcloud->header.seq = i;
+//            pointcloud->header.stamp = timestamps[i];
+//
+//            (static_cast<LidarPrefilterer*>(skeleton.lidar_list[0].frontend.modules["prefilterer"].get()))->update_raw_pointcloud_observer(pointcloud);
+//            usleep(100000); // just to simulate data acquisition rate
+//        }
+//
+//        sleep(5);
     }
 
     /**

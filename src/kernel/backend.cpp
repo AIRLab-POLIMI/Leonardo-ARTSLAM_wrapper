@@ -49,6 +49,7 @@ namespace artslam
                 /* backend handler ---------------------------------------------------------------------------------- */
                 std::cout << std::endl << ">> BACKEND-HANDLER" << std::endl;
                 BackendHandler::Configuration bh_config = parse_backend_handler_configuration(config_file);
+                std::cout << "alloraaa: " << bh_config.occmap_width_ << std::endl;
                 backend_handler = std::make_shared<BackendHandler>(bh_config);
                 backend_handler->set_converter(config_file);
 
