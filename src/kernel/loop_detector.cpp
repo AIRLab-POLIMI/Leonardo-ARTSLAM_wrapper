@@ -2,7 +2,7 @@
 
 /* ---------------------------------------------------------------------------------------------------------------------
  * Package: ARTSLAM-WRAPPER
- * Class: ARTSLAMKernel
+ * Class: ARTSLAMLoopDetector
  * Author: Mirko Usuelli
  * Advisor: Prof. Matteo Matteucci, PhD
  * Co-Advisors: Matteo Frosi, PhD; Gianluca Bardaro, PhD; Simone Mentasti, PhD; Paolo Cudrano, PhD Student.
@@ -20,50 +20,27 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * ---------------------------------------------------------------------------------------------------------------------
  */
-#ifndef ARTSLAM_KERNEL_H
-#define ARTSLAM_KERNEL_H
+#include "kernel/loop_detector.hpp"
 
-// kernel sub-modules
-#include "artslam_front_end.h"
-#include "artslam_loop_detector.h"
-#include "artslam_back_end.h"
+namespace artslam::lots::wrapper {
+    /**
+     * Initialize loop detector sub-modules.
+     *
+     * @param config_file
+     */
+    void LoopDetector::start(std::string config_file) {
+        std::string welcome = " METHOD #" + std::to_string(_id) + " ";
+        std::string title(100, '=');
+        title.replace((int) (title.length() / 2 - (int) (welcome.length() / 2)), welcome.length(), welcome);
+        std::cout << std::endl << title << std::endl;
 
-// sensors
-#include "sensors/artslam_lidar.h"
-#include "sensors/artslam_imu.h"
-#include "sensors/artslam_gnss.h"
-
-namespace artslam
-{
-    namespace laser3d
-    {
-        /**
-         * ARTSLAMKernel
-         *
-         * This class incorporates all ARTSLAM sub-modules (Back-End + Loop Detector + Front-End) and it is in charge
-         * of construct them based on the configuration file.
-         */
-        class ARTSLAMKernel
-        {
-            public:
-                /* front-end */
-                // TODO: make a vector
-                ARTSLAMLidar lidar;
-                ARTSLAMImu imu;
-                ARTSLAMGnss gnss;
-
-                /* loop-detectors */
-                // TODO: make a vector
-                ARTSLAMLoopDetector loop_detectors;
-
-                /* back-end */
-                ARTSLAMBackEnd backend;
-
-                ARTSLAMKernel(){};
-
-                void start(ros::NodeHandle* mt_nh, ARTSLAMBridgeVisualizer* bridge, std::string config_file);
-        };
+        /* loop detector */
+        Registration::Configuration loop_detector_registration_configuration =
+                parse_registration_loop_detector_configuration(config_file, 0);
+        LidarRegistration loop_detector_registration(loop_detector_registration_configuration);
+        artslam::lots::LoopDetector::Configuration loop_detector_configuration =
+                parse_loop_detector_configuration(config_file, 0);
+        loop_detector = std::make_shared<FullLidar>(loop_detector_configuration,
+                                                    loop_detector_registration.registration_method());
     }
 }
-
-#endif // ARTSLAM_KERNEL_H

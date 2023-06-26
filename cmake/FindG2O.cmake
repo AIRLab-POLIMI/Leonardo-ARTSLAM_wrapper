@@ -26,7 +26,8 @@ MACRO(FIND_G2O_LIBRARY MYLIBRARY MYLIBRARYNAME)
             ${G2O_ROOT}/lib
             $ENV{G2O_ROOT}/lib/Debug
             $ENV{G2O_ROOT}/lib
-            /opt/ros/$ENV{ROS_DISTRO}/lib
+            #/opt/ros/$ENV{ROS_DISTRO}/lib
+            /opt/ros/$ENV{ROS_DISTRO}/lib/x86_64-linux-gnu
             NO_DEFAULT_PATH
             )
 
@@ -51,7 +52,8 @@ MACRO(FIND_G2O_LIBRARY MYLIBRARY MYLIBRARYNAME)
             ${G2O_ROOT}/lib
             $ENV{G2O_ROOT}/lib/Release
             $ENV{G2O_ROOT}/lib
-            /opt/ros/$ENV{ROS_DISTRO}/lib
+            #/opt/ros/$ENV{ROS_DISTRO}/lib
+            /opt/ros/$ENV{ROS_DISTRO}/lib/x86_64-linux-gnu
             NO_DEFAULT_PATH
             )
 

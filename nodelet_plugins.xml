@@ -1,6 +1,0 @@
-<library path="lib/libartslam_controller">
-    <class name="artslam_wrapper/ARTSLAMController" type="artslam::laser3d::ARTSLAMController" base_class_type="nodelet::Nodelet" />
-    <description>
-        A node to add a value and republish.
-    </description>
-</library>
