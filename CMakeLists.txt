@@ -50,12 +50,12 @@ message("${PROJECT_NAME} - OpenCV version ${OpenCV_VERSION}")
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_library(ARTSLAM_IO_FOUND NAMES artslam_core_io_library PATHS "${ARTSLAM_LOCATION}/LOTS-CORE/lib" REQUIRED NO_DEFAULT_PATH)
-find_library(ARTSLAM_TYPES_FOUND NAMES artslam_core_types_library PATHS "${ARTSLAM_LOCATION}/LOTS-CORE/lib" REQUIRED NO_DEFAULT_PATH)
-find_library(ARTSLAM_CORE_FOUND NAMES artslam_core_utils_library PATHS "${ARTSLAM_LOCATION}/LOTS-CORE/lib" REQUIRED NO_DEFAULT_PATH)
+find_library(LOTS_IO_FOUND NAMES lots_core_io_lib PATHS "${ARTSLAM_LOCATION}/LOTS-CORE/lib" REQUIRED NO_DEFAULT_PATH)
+find_library(LOTS_UTILS_FOUND NAMES lots_core_utils_lib PATHS "${ARTSLAM_LOCATION}/LOTS-CORE/lib" REQUIRED NO_DEFAULT_PATH)
 include_directories("${ARTSLAM_LOCATION}/LOTS-CORE/src")
+include_directories("${ARTSLAM_LOCATION}/LOTS-CORE/include")
 
-find_library(ARTSLAM_LIB_FOUND NAMES artslam_lib PATHS "${ARTSLAM_LOCATION}/LOTS-SLAM/lib" REQUIRED NO_DEFAULT_PATH)
+find_library(LOTS_LIB_FOUND NAMES lotslam_lib PATHS "${ARTSLAM_LOCATION}/LOTS-SLAM/lib" REQUIRED NO_DEFAULT_PATH)
 include_directories("${ARTSLAM_LOCATION}/LOTS-SLAM/src")
 include_directories("${ARTSLAM_LOCATION}/LOTS-SLAM/include")
 
@@ -86,10 +86,9 @@ install(DIRECTORY
 target_link_libraries(artslam_wrapper_node
     ${PCL_LIBRARIES}
     gtsam
-    ${ARTSLAM_IO_FOUND}
-    ${ARTSLAM_TYPES_FOUND}
-    ${ARTSLAM_CORE_FOUND}
-    ${ARTSLAM_LIB_FOUND}
+    ${LOTS_IO_FOUND}
+    ${LOTS_UTILS_FOUND}
+    ${LOTS_LIB_FOUND}
 )
 
 ament_target_dependencies(artslam_wrapper_node
