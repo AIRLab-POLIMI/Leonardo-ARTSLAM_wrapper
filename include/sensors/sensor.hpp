@@ -35,7 +35,8 @@
 #include <tf2_eigen/tf2_eigen.hpp>
 #include "tf2_ros/buffer.h"
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
+    using namespace lots::slam::utils;
     /**
      * ARTSLAMSensor
      *
@@ -45,7 +46,7 @@ namespace artslam::lots::wrapper {
     class Sensor {
     protected:
         /* Attributes ----------------------------------------------------------------------------------- */
-        std::string _sensor_type;
+        SensorType _sensor_type;
         int _sensor_id;
 
 //        std::string _topic;
@@ -106,8 +107,8 @@ namespace artslam::lots::wrapper {
          * @param config_file Configuration file
          */
         void start(Backend *backend, const std::string& config_file) {
-            std::string sensor_type = boost::algorithm::to_lower_copy(_sensor_type);
-            std::string welcome = " " + _sensor_type + " #" + std::to_string(_sensor_id) + " ";
+            std::string sensor_type = SensorTypeString[_sensor_type];
+            std::string welcome = " " + sensor_type + " #" + std::to_string(_sensor_id) + " ";
             std::string title(100, '=');
             title.replace((int) (title.length() / 2 - (int) (welcome.length() / 2)), welcome.length(), welcome);
 
@@ -122,11 +123,12 @@ namespace artslam::lots::wrapper {
             }
             std::cout << "- T(" << sensor_type << "_" << std::to_string(_sensor_id) << "->base)   [ R | t ] "
                       << std::endl;
-            std::cout << backend->backend_handler->converter.get_sensor2base_tf(sensor_type, _sensor_id).matrix()
-                      << std::endl;
+            //TODO check converter
+//            std::cout << backend->backend_handler->converter.get_sensor2base_tf(sensor_type, _sensor_id).matrix()
+//                      << std::endl;
             std::cout << std::endl;
 
-            frontend.start(config_file, sensor_type, _sensor_id);
+            frontend.start(config_file, _sensor_type, _sensor_id);
 
             /* back-end */
             setBackEnd(backend);
@@ -157,20 +159,19 @@ namespace artslam::lots::wrapper {
          */
         void setBackEnd(Backend *_backend) {
             backend = _backend;
-            std::string sensor_type = boost::algorithm::to_lower_copy(_sensor_type);
 
             if (frontend.modules.find("tracker") != frontend.modules.end()) {
-                if (sensor_type == "lidar")
-                    (static_cast<LidarTracker *>(frontend.modules["tracker"].get()))->register_keyframe_observer(
+                if (_sensor_type == LIDAR)
+                    (static_cast<LiDARTracker *>(frontend.modules["tracker"].get()))->register_keyframe_observer(
                             backend->backend_handler.get());
-                else if (sensor_type == "odom")
-                    (static_cast<OdomTracker *>(frontend.modules["tracker"].get()))->register_keyframe_observer(
-                            backend->backend_handler.get());
+//                else if (_sensor_type == ODOMETRY)
+//                    (static_cast<OdomTracker *>(frontend.modules["tracker"].get()))->register_keyframe_observer(
+//                            backend->backend_handler.get());
                 std::cout << "[BackendHandler] Registered to the Tracker!" << std::endl;
             }
 
             if (frontend.modules.find("ground_detector") != frontend.modules.end()) {
-                (static_cast<LidarGroundDetector *>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(
+                (static_cast<LiDARGroundDetector *>(frontend.modules["ground_detector"].get()))->register_floor_coefficients_observer(
                         backend->backend_handler.get());
                 std::cout << "[BackendHandler] Registered to the GroundDetector!" << std::endl;
             }

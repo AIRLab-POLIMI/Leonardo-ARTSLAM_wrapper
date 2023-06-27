@@ -33,7 +33,7 @@
 
 using namespace std::placeholders;
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Gnss
      *
@@ -42,7 +42,7 @@ namespace artslam::lots::wrapper {
     class Gnss : public Sensor<sensor_msgs::msg::NavSatFix> {
     public:
         explicit Gnss(int id) {
-            _sensor_type = "GNSS";
+            _sensor_type = GNSS;
             _sensor_id = id;
 
             _start_color = "\033[1;35m";
@@ -59,7 +59,7 @@ namespace artslam::lots::wrapper {
          */
 //        void setSubscribers(std::shared_ptr<rclcpp::Node> n) {
 //            sensor_sub = n->create_subscription<sensor_msgs::msg::NavSatFix>(_topic, _buffer, std::bind(
-//                    &artslam::lots::wrapper::Gnss::callback, this, _1));
+//                    &lots::slam::wrapper::Gnss::callback, this, _1));
 //        };
 
         /**
@@ -68,43 +68,44 @@ namespace artslam::lots::wrapper {
          * @param msg Template message which depends from the sensor type.
          */
         void callback(const sensor_msgs::msg::NavSatFix &msg) override {
-            if (counter == 0) {
-                tf2::Stamped<tf2::Transform> transform;
-                rclcpp::Node n("node");
-                try {
-//                    _tf_buffer->lookupTransform("base_link", msg.header.frame_id, n.now());
-                }
-                catch (std::exception &e) {
-                    std::cerr << "failed to find gps transform!!" << std::endl;
-                    return;
-                }
-
-                EigVector3d g2l_translation(
-                        transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z());
-                backend->backend_handler->set_gps_to_lidar_translation(g2l_translation);
-            }
-
-            GeoPointStamped_MSG::Ptr conv_gnss_msg(new GeoPointStamped_MSG);
-
-            conv_gnss_msg->header_.timestamp_ =
-                    (unsigned long) (msg.header.stamp.sec) * 1000000000ull + (unsigned long) (msg.header.stamp.nanosec);
-
-            conv_gnss_msg->header_.frame_id_ = "base_link";
-            conv_gnss_msg->header_.sequence_ = counter;
-            counter++;
-            conv_gnss_msg->latitude_ = msg.latitude;
-            conv_gnss_msg->longitude_ = msg.longitude;
-            conv_gnss_msg->altitude_ = msg.altitude;
-            conv_gnss_msg->covariance_type_ = msg.position_covariance_type;
-
-            for (int i = 0; i < 9; i++) {
-                if (conv_gnss_msg->covariance_type_ == 0) {
-                    conv_gnss_msg->covariance_[i] = 0.0;
-                } else {
-                    conv_gnss_msg->covariance_[i] = msg.position_covariance[i];
-                }
-            }
-            backend->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
+            // TODO GPS to be reimplemented
+//            if (counter == 0) {
+//                tf2::Stamped<tf2::Transform> transform;
+//                rclcpp::Node n("node");
+//                try {
+////                    _tf_buffer->lookupTransform("base_link", msg.header.frame_id, n.now());
+//                }
+//                catch (std::exception &e) {
+//                    std::cerr << "failed to find gps transform!!" << std::endl;
+//                    return;
+//                }
+//
+//                EigVector3d g2l_translation(
+//                        transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z());
+//                backend->backend_handler->set_gps_to_lidar_translation(g2l_translation);
+//            }
+//
+//            GeoPointStamped_MSG::Ptr conv_gnss_msg(new GeoPointStamped_MSG);
+//
+//            conv_gnss_msg->header_.timestamp_ =
+//                    (unsigned long) (msg.header.stamp.sec) * 1000000000ull + (unsigned long) (msg.header.stamp.nanosec);
+//
+//            conv_gnss_msg->header_.frame_id_ = "base_link";
+//            conv_gnss_msg->header_.sequence_ = counter;
+//            counter++;
+//            conv_gnss_msg->latitude_ = msg.latitude;
+//            conv_gnss_msg->longitude_ = msg.longitude;
+//            conv_gnss_msg->altitude_ = msg.altitude;
+//            conv_gnss_msg->covariance_type_ = msg.position_covariance_type;
+//
+//            for (int i = 0; i < 9; i++) {
+//                if (conv_gnss_msg->covariance_type_ == 0) {
+//                    conv_gnss_msg->covariance_[i] = 0.0;
+//                } else {
+//                    conv_gnss_msg->covariance_[i] = msg.position_covariance[i];
+//                }
+//            }
+//            backend->backend_handler->update_raw_gnss_observer(conv_gnss_msg);
         };
     };
 }

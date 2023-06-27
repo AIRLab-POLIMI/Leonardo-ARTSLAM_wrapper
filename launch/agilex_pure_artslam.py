@@ -12,10 +12,10 @@ def generate_launch_description():
         name='wrapper_controller',
         output='screen',
         parameters=[{
-            'configuration_file': "/home/gianluca/development/humble/LOTS-SLAM/configs/agilex.json",
-            'results_path': "/home/gianluca/development/humble/LOTS-SLAM/results"
+            'configuration_file': "/home/gianluca/development/humble/artslam_ws/src/ARTSLAM_wrapper/config/KITTI.json",
+            'results_path': "/home/gianluca/development/humble/artslam_ws/src/ARTSLAM_wrapper/results"
         }],
-        prefix=['xterm -e gdb -q -ex run --args']
+        # prefix=['xterm -e gdb -q -ex run --args']
     )
 
     ld.add_action(artslam_wrapper_node)

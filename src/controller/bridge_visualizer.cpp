@@ -47,7 +47,7 @@
 
 using namespace std::chrono_literals;
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
 /**
  * Initialize the bridge-visualizer for ARTSLAM-ROS functionalities.
  */
@@ -96,10 +96,10 @@ namespace artslam::lots::wrapper {
  *
  * @param pointcloud Filtered PCL pointcloud to be displayed.
  */
-    void BridgeVisualizer::update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) {
-        // sending the point cloud to the visualizer through the dispatcher
-        dispatcher->dispatch([this, pointcloud] { draw_pointcloud(pointcloud); });
-    }
+//    void BridgeVisualizer::update_point_cloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) {
+//        // sending the point cloud to the visualizer through the dispatcher
+//        dispatcher->dispatch([this, pointcloud] { draw_pointcloud(pointcloud); });
+//    }
 
 /**
  * It signals that map and poses are ready to be displayed.
@@ -107,15 +107,15 @@ namespace artslam::lots::wrapper {
  * @param map Map to be displayed.
  * @param poses Poses to be displayed.
  */
-    void BridgeVisualizer::update_slam_output_observer(pcl::PointCloud<Point3I>::Ptr map,
-                                                       std::vector<Eigen::Isometry3d> poses,
-                                                       OccupancyGrid::Ptr occupancy_grid) {
-        // sending map and poses to the visualizer through the dispatcher
-        std::cout << "update_slam_output_observer" << std::endl;
-        dispatcher->dispatch([this, map, poses, occupancy_grid] {
-            draw_map_and_poses(map, poses, occupancy_grid);
-        });
-    }
+//    void BridgeVisualizer::update_slam_output_observer(pcl::PointCloud<Point3I>::Ptr map,
+//                                                       std::vector<Eigen::Isometry3d> poses,
+//                                                       OccupancyGrid::Ptr occupancy_grid) {
+//        // sending map and poses to the visualizer through the dispatcher
+//        std::cout << "update_slam_output_observer" << std::endl;
+//        dispatcher->dispatch([this, map, poses, occupancy_grid] {
+//            draw_map_and_poses(map, poses, occupancy_grid);
+//        });
+//    }
 
 /**
  * It draws a new received pointcloud.
@@ -137,134 +137,149 @@ namespace artslam::lots::wrapper {
         pointcloud_pub->publish(pointcloud_msg);
     }
 
+    void BridgeVisualizer::draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector<EigIsometry3d> poses,
+                                              OccupancyGrid_MSG::Ptr occupancy_grid) {
+
+    }
+
+    void
+    BridgeVisualizer::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
+        //TODO call draw map and poses and draw point cloud
+    }
+
+    void
+    BridgeVisualizer::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
+
+    }
+
 /**
  * Signals that map and poses are ready to be displayed.
  *
  * @param map Map to be displayed.
  * @param poses Poses to be displayed.
  */
-    void BridgeVisualizer::draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector<EigIsometry3d> poses,
-                                              OccupancyGrid::Ptr occupancy_grid) {
-        std::cout << "drawing map" << std::endl;
-        // pointcloud message
-        sensor_msgs::msg::PointCloud2 pointcloud_msg;
-        rclcpp::Time stamp(map->header.stamp / 1000000000ull, map->header.stamp % 1000000000ull);
-        map->header.stamp /= 1000ull;
-        pcl::toROSMsg(*map, pointcloud_msg);
-        pointcloud_msg.header.frame_id = global_frame;
-        pointcloud_msg.header.stamp = stamp;
-        pointcloud_pub->publish(pointcloud_msg);
-
-        // occupancy grid message
-        nav_msgs::msg::OccupancyGrid occupancy_grid_msg;
-        occupancy_grid_msg.header.frame_id = global_frame;
-        occupancy_grid_msg.header.stamp = stamp;
-        occupancy_grid_msg.info.resolution = occupancy_grid->resolution_;
-        occupancy_grid_msg.info.width = occupancy_grid->width_;
-        occupancy_grid_msg.info.height = occupancy_grid->height_;
-        EigIsometry3d occupancy_grid_origin = occupancy_grid->initial_pose_;
-        EigQuaterniond q(occupancy_grid_origin.linear());
-        occupancy_grid_msg.info.origin.orientation.x = q.x();
-        occupancy_grid_msg.info.origin.orientation.y = q.y();
-        occupancy_grid_msg.info.origin.orientation.z = q.z();
-        occupancy_grid_msg.info.origin.orientation.w = q.w();
-        occupancy_grid_msg.info.origin.position.x = occupancy_grid_origin.translation().x();
-        occupancy_grid_msg.info.origin.position.y = occupancy_grid_origin.translation().y();
-        occupancy_grid_msg.info.origin.position.z = occupancy_grid_origin.translation().z();
-        for (int &i: occupancy_grid->data_) {
-            occupancy_grid_msg.data.emplace_back(i);
-        }
-        occgrid_map_pub->publish(occupancy_grid_msg);
-
-        // marker array initialized
-        visualization_msgs::msg::MarkerArray markers;
-        markers.markers.resize(1);
-
-        // node markers visualization
-        visualization_msgs::msg::Marker &traj_marker = markers.markers[0];
-        traj_marker.header.frame_id = global_frame;
-        traj_marker.header.stamp = node->now();
-        traj_marker.ns = "nodes";
-        traj_marker.id = 0;
-        traj_marker.type = visualization_msgs::msg::Marker::SPHERE_LIST;
-        traj_marker.pose.orientation.w = 1.0;
-        traj_marker.scale.x = traj_marker.scale.y = traj_marker.scale.z = 0.5;
-        traj_marker.points.resize(poses.size());
-        traj_marker.colors.resize(poses.size());
-
-        for (int i = 0; i < poses.size(); i++) {
-            Eigen::Vector3d pos = poses[i].translation();
-            traj_marker.points[i].x = pos.x();
-            traj_marker.points[i].y = pos.y();
-            traj_marker.points[i].z = pos.z();
-
-            double p = static_cast<double>(i) / poses.size();
-            traj_marker.colors[i].r = 1.0 - p;
-            traj_marker.colors[i].g = p;
-            traj_marker.colors[i].b = 0.0;
-            traj_marker.colors[i].a = 1.0;
-        }
-
-        markers_pub->publish(markers);
-
-        // pose message
-        geometry_msgs::msg::PoseStamped pose_;
-        pose_.header.frame_id = global_frame;
-        pose_.header.stamp = stamp;
-        tf2::Quaternion q_;
-        tf2::Matrix3x3(poses[poses.size() - 1].rotation().coeff(0, 0), poses[poses.size() - 1].rotation().coeff(0, 1),
-                       poses[poses.size() - 1].rotation().coeff(0, 2), poses[poses.size() - 1].rotation().coeff(1, 0),
-                       poses[poses.size() - 1].rotation().coeff(1, 1), poses[poses.size() - 1].rotation().coeff(1, 2),
-                       poses[poses.size() - 1].rotation().coeff(2, 0), poses[poses.size() - 1].rotation().coeff(2, 1),
-                       poses[poses.size() - 1].rotation().coeff(2, 2)).getRotation(q_);
-
-        pose_.pose.position.x = poses[poses.size() - 1].translation().x();
-        pose_.pose.position.y = poses[poses.size() - 1].translation().y();
-        pose_.pose.position.z = poses[poses.size() - 1].translation().z();
-        tf2::convert(q_, pose_.pose.orientation);
-        pose_pub->publish(pose_);
-
-        try {
-            tf2::Duration duration(std::chrono::nanoseconds(stamp.nanoseconds()));
-            tf2::TimePoint timepoint(duration);
-
-            tf2::Stamped<tf2::Transform> base_to_map(
-                    tf2::Transform(q_, tf2::Vector3(pose_.pose.position.x, pose_.pose.position.y, 0.0)).inverse(),
-                    //stamp, base_frame);
-                    timepoint, base_frame);
-
-            geometry_msgs::msg::TransformStamped base_to_map_msg, odom_to_map_msg;
-            tf2::convert(base_to_map, base_to_map_msg);
-            odom_to_map_msg = tf_buffer->transform(base_to_map_msg, odom_frame);
-            tf2::Stamped<tf2::Transform> odom_to_map;
-            tf2::convert(odom_to_map_msg, odom_to_map);
-
-            tf2::convert(odom_to_map.inverse(), latest_transform.transform);
-            latest_transform.header.frame_id = global_frame;
-            latest_transform.child_frame_id = odom_frame;
-        } catch (tf2::TransformException) {
-            std::cerr << "Missing tf!" << std::endl;
-        }
-    }
-
-    void BridgeVisualizer::update_odometry_observer(const OdometryStamped3D_MSG::ConstPtr &message) {
-        nav_msgs::msg::Odometry odom_msg;
-
-        rclcpp::Time stamp(message->header_.timestamp_ / 1000000000ll, message->header_.timestamp_ % 1000000000ll);
-
-        odom_msg.header.stamp = stamp;
-        odom_msg.header.frame_id = global_frame;
-
-        EigQuaterniond q(message->odometry_.block<3, 3>(0, 0).cast<double>());
-        odom_msg.pose.pose.orientation.x = q.x();
-        odom_msg.pose.pose.orientation.y = q.y();
-        odom_msg.pose.pose.orientation.z = q.z();
-        odom_msg.pose.pose.orientation.w = q.w();
-
-        odom_msg.pose.pose.position.x = message->odometry_(0, 3);
-        odom_msg.pose.pose.position.y = message->odometry_(1, 3);
-        odom_msg.pose.pose.position.z = message->odometry_(2, 3);
-
-        odom_pub->publish(odom_msg);
-    }
-} // namespace artslam::lots::wrapper
+//    void BridgeVisualizer::draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector<EigIsometry3d> poses,
+//                                              OccupancyGrid::Ptr occupancy_grid) {
+//        std::cout << "drawing map" << std::endl;
+//        // pointcloud message
+//        sensor_msgs::msg::PointCloud2 pointcloud_msg;
+//        rclcpp::Time stamp(map->header.stamp / 1000000000ull, map->header.stamp % 1000000000ull);
+//        map->header.stamp /= 1000ull;
+//        pcl::toROSMsg(*map, pointcloud_msg);
+//        pointcloud_msg.header.frame_id = global_frame;
+//        pointcloud_msg.header.stamp = stamp;
+//        pointcloud_pub->publish(pointcloud_msg);
+//
+//        // occupancy grid message
+//        nav_msgs::msg::OccupancyGrid occupancy_grid_msg;
+//        occupancy_grid_msg.header.frame_id = global_frame;
+//        occupancy_grid_msg.header.stamp = stamp;
+//        occupancy_grid_msg.info.resolution = occupancy_grid->resolution_;
+//        occupancy_grid_msg.info.width = occupancy_grid->width_;
+//        occupancy_grid_msg.info.height = occupancy_grid->height_;
+//        EigIsometry3d occupancy_grid_origin = occupancy_grid->initial_pose_;
+//        EigQuaterniond q(occupancy_grid_origin.linear());
+//        occupancy_grid_msg.info.origin.orientation.x = q.x();
+//        occupancy_grid_msg.info.origin.orientation.y = q.y();
+//        occupancy_grid_msg.info.origin.orientation.z = q.z();
+//        occupancy_grid_msg.info.origin.orientation.w = q.w();
+//        occupancy_grid_msg.info.origin.position.x = occupancy_grid_origin.translation().x();
+//        occupancy_grid_msg.info.origin.position.y = occupancy_grid_origin.translation().y();
+//        occupancy_grid_msg.info.origin.position.z = occupancy_grid_origin.translation().z();
+//        for (int &i: occupancy_grid->data_) {
+//            occupancy_grid_msg.data.emplace_back(i);
+//        }
+//        occgrid_map_pub->publish(occupancy_grid_msg);
+//
+//        // marker array initialized
+//        visualization_msgs::msg::MarkerArray markers;
+//        markers.markers.resize(1);
+//
+//        // node markers visualization
+//        visualization_msgs::msg::Marker &traj_marker = markers.markers[0];
+//        traj_marker.header.frame_id = global_frame;
+//        traj_marker.header.stamp = node->now();
+//        traj_marker.ns = "nodes";
+//        traj_marker.id = 0;
+//        traj_marker.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+//        traj_marker.pose.orientation.w = 1.0;
+//        traj_marker.scale.x = traj_marker.scale.y = traj_marker.scale.z = 0.5;
+//        traj_marker.points.resize(poses.size());
+//        traj_marker.colors.resize(poses.size());
+//
+//        for (int i = 0; i < poses.size(); i++) {
+//            Eigen::Vector3d pos = poses[i].translation();
+//            traj_marker.points[i].x = pos.x();
+//            traj_marker.points[i].y = pos.y();
+//            traj_marker.points[i].z = pos.z();
+//
+//            double p = static_cast<double>(i) / poses.size();
+//            traj_marker.colors[i].r = 1.0 - p;
+//            traj_marker.colors[i].g = p;
+//            traj_marker.colors[i].b = 0.0;
+//            traj_marker.colors[i].a = 1.0;
+//        }
+//
+//        markers_pub->publish(markers);
+//
+//        // pose message
+//        geometry_msgs::msg::PoseStamped pose_;
+//        pose_.header.frame_id = global_frame;
+//        pose_.header.stamp = stamp;
+//        tf2::Quaternion q_;
+//        tf2::Matrix3x3(poses[poses.size() - 1].rotation().coeff(0, 0), poses[poses.size() - 1].rotation().coeff(0, 1),
+//                       poses[poses.size() - 1].rotation().coeff(0, 2), poses[poses.size() - 1].rotation().coeff(1, 0),
+//                       poses[poses.size() - 1].rotation().coeff(1, 1), poses[poses.size() - 1].rotation().coeff(1, 2),
+//                       poses[poses.size() - 1].rotation().coeff(2, 0), poses[poses.size() - 1].rotation().coeff(2, 1),
+//                       poses[poses.size() - 1].rotation().coeff(2, 2)).getRotation(q_);
+//
+//        pose_.pose.position.x = poses[poses.size() - 1].translation().x();
+//        pose_.pose.position.y = poses[poses.size() - 1].translation().y();
+//        pose_.pose.position.z = poses[poses.size() - 1].translation().z();
+//        tf2::convert(q_, pose_.pose.orientation);
+//        pose_pub->publish(pose_);
+//
+//        try {
+//            tf2::Duration duration(std::chrono::nanoseconds(stamp.nanoseconds()));
+//            tf2::TimePoint timepoint(duration);
+//
+//            tf2::Stamped<tf2::Transform> base_to_map(
+//                    tf2::Transform(q_, tf2::Vector3(pose_.pose.position.x, pose_.pose.position.y, 0.0)).inverse(),
+//                    //stamp, base_frame);
+//                    timepoint, base_frame);
+//
+//            geometry_msgs::msg::TransformStamped base_to_map_msg, odom_to_map_msg;
+//            tf2::convert(base_to_map, base_to_map_msg);
+//            odom_to_map_msg = tf_buffer->transform(base_to_map_msg, odom_frame);
+//            tf2::Stamped<tf2::Transform> odom_to_map;
+//            tf2::convert(odom_to_map_msg, odom_to_map);
+//
+//            tf2::convert(odom_to_map.inverse(), latest_transform.transform);
+//            latest_transform.header.frame_id = global_frame;
+//            latest_transform.child_frame_id = odom_frame;
+//        } catch (tf2::TransformException) {
+//            std::cerr << "Missing tf!" << std::endl;
+//        }
+//    }
+//
+//    void BridgeVisualizer::update_odometry_observer(const OdometryStamped3D_MSG::ConstPtr &message) {
+//        nav_msgs::msg::Odometry odom_msg;
+//
+//        rclcpp::Time stamp(message->header_.timestamp_ / 1000000000ll, message->header_.timestamp_ % 1000000000ll);
+//
+//        odom_msg.header.stamp = stamp;
+//        odom_msg.header.frame_id = global_frame;
+//
+//        EigQuaterniond q(message->odometry_.block<3, 3>(0, 0).cast<double>());
+//        odom_msg.pose.pose.orientation.x = q.x();
+//        odom_msg.pose.pose.orientation.y = q.y();
+//        odom_msg.pose.pose.orientation.z = q.z();
+//        odom_msg.pose.pose.orientation.w = q.w();
+//
+//        odom_msg.pose.pose.position.x = message->odometry_(0, 3);
+//        odom_msg.pose.pose.position.y = message->odometry_(1, 3);
+//        odom_msg.pose.pose.position.z = message->odometry_(2, 3);
+//
+//        odom_pub->publish(odom_msg);
+//    }
+} // namespace lots::slam::wrapper

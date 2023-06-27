@@ -53,7 +53,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
 /**
  * Controller
  *

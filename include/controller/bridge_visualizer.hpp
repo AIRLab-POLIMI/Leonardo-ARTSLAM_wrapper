@@ -25,11 +25,10 @@
 #define WRAPPER_BRIDGE_VISUALIZER_H
 
 // ARTSLAM libraries
-#include <artslam_utils/dispatcher.h>
+#include <lots_utils/dispatcher.h>
 
 // Observers libraries
-#include <observers/output_observer.h>
-#include <observers/pointcloud_observers.h>
+#include "observers.h"
 
 // ROS libraries
 #include "rclcpp/rclcpp.hpp"
@@ -47,7 +46,8 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
+    using namespace lots::core::types;
 /**
  * ARTSLAMBridgeVisualizer
  *
@@ -57,8 +57,7 @@ namespace artslam::lots::wrapper {
  * This interaction with the ARTSLAM architecture is due to the visual monitoring task of this class which
  * acts as a bridge between ARTSLAM and ROS through a Visualizer tool such as Rviz or Fox Glove Studio.
  */
-    class BridgeVisualizer : public FilteredPointcloudObserver,
-                             public SlamOutputObserver {
+    class BridgeVisualizer : public SLAMOutputObserver {
         // Constants
         const std::string MODULE_ID = "VisualizerBridgeDispatcher";
         const std::string TOPIC_ROOT = "/artslam_wrapper";
@@ -88,19 +87,22 @@ namespace artslam::lots::wrapper {
         void init_tf();
 
         // Observer updating interfaces
-        void update_filtered_pointcloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
+        void update_slam_output_observer(const SLAMOutput_MSG::Ptr& slam_output, const std::string& id) override;
+        void update_slam_output_observer(const SLAMOutput_MSG::ConstPtr& slam_output, const std::string& id) override;
 
-        void update_slam_output_observer(
-                pcl::PointCloud<Point3I>::Ptr map,
-                std::vector<Eigen::Isometry3d> poses,
-                OccupancyGrid::Ptr occupancy_grid) override;
-
-        void update_odometry_observer(const OdometryStamped3D_MSG::ConstPtr &message) override;
+//        void update_point_cloud_observer(pcl::PointCloud<Point3I>::ConstPtr pointcloud) override;
+//
+//        void update_slam_output_observer(
+//                pcl::PointCloud<Point3I>::Ptr map,
+//                std::vector<Eigen::Isometry3d> poses,
+//                OccupancyGrid_MSG::Ptr occupancy_grid) override;
+//
+//        void update_odometry_observer(const Odometry_MSG::ConstPtr &message) override;
 
     private:
         /* Attributes ----------------------------------------------------------------------------------- */
         // Core visualization dispatcher
-        std::unique_ptr<artslam::core::utils::Dispatcher> dispatcher;
+        std::unique_ptr<lots::core::utils::Dispatcher> dispatcher;
 
         // ROS Node handler
         std::shared_ptr<rclcpp::Node> node;
@@ -121,7 +123,7 @@ namespace artslam::lots::wrapper {
         void draw_pointcloud(const pcl::PointCloud<Point3I>::ConstPtr &pointcloud);
 
         void draw_map_and_poses(pcl::PointCloud<Point3I>::Ptr map, std::vector<EigIsometry3d> poses,
-                                OccupancyGrid::Ptr occupancy_grid);
+                                OccupancyGrid_MSG::Ptr occupancy_grid);
 
         void timer_callback();
     };

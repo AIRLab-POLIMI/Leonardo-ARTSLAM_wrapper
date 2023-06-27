@@ -37,7 +37,7 @@
 
 using namespace std::placeholders;
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Imu
      *
@@ -46,7 +46,7 @@ namespace artslam::lots::wrapper {
     class Imu : public Sensor<sensor_msgs::msg::Imu> {
     public:
         explicit Imu(int id) {
-            _sensor_type = "IMU";
+            _sensor_type = IMU;
             _sensor_id = id;
 
             _start_color = "\033[1;32m";
@@ -67,7 +67,7 @@ namespace artslam::lots::wrapper {
 //
 //            auto sensor_qos = rclcpp::QoS(rclcpp::SensorDataQoS());
 //            sensor_sub = n->create_subscription<sensor_msgs::msg::Imu>(_topic, sensor_qos,
-//                                                                       std::bind(&artslam::lots::wrapper::Imu::callback,
+//                                                                       std::bind(&lots::slam::wrapper::Imu::callback,
 //                                                                                 this, _1));
 //        };
 
@@ -77,21 +77,22 @@ namespace artslam::lots::wrapper {
          * @param msg Template message which depends from the sensor type.
          */
         void callback(const sensor_msgs::msg::Imu &msg) override {
-            IMU3D_MSG::Ptr _imu_msg(new IMU3D_MSG);
+            IMU_MSG::Ptr _imu_msg(new IMU_MSG);
 
             _imu_msg->header_.timestamp_ =
                     (unsigned long) (msg.header.stamp.sec) * 1000000000ull + (unsigned long) (msg.header.stamp.nanosec);
 
             _imu_msg->header_.sequence_ = _count;
             _count++;
-            _imu_msg->header_.frame_id_ = msg.header.frame_id;
-            _imu_msg->has_orientation_ = false;
-            _imu_msg->has_linear_acceleration_ = true;
-            _imu_msg->linear_acceleration_ << msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z;
-            _imu_msg->has_angular_velocity_ = true;
-            _imu_msg->angular_velocity_ << msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z;
+            // TODO change message content
+//            _imu_msg->header_.frame_id_ = msg.header.frame_id;
+//            _imu_msg->has_orientation_ = false;
+//            _imu_msg->has_linear_acceleration_ = true;
+//            _imu_msg->linear_acceleration_ << msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z;
+//            _imu_msg->has_angular_velocity_ = true;
+//            _imu_msg->angular_velocity_ << msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z;
 
-            backend->backend_handler->update_raw_imu_observer(_imu_msg);
+            backend->backend_handler->update_imu_observer(_imu_msg, "raw");
         };
     private:
         std::string _base_frame;

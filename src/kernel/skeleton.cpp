@@ -22,8 +22,9 @@
  */
 #include "kernel/skeleton.hpp"
 
-namespace artslam::lots::wrapper
+namespace lots::slam::wrapper
 {
+    using namespace lots::slam::utils;
             void print_header(const std::string& text)
             {
                 std::string title(100, '#');
@@ -75,20 +76,21 @@ namespace artslam::lots::wrapper
                         tmp_prior_odom_topic = parse_prior_odom_topic(config_file, "lidar", i);
                         if (!tmp_prior_odom_topic.empty()) {
                             lidar_list[i].prior_odom_sub = n->create_subscription<nav_msgs::msg::Odometry>(tmp_prior_odom_topic, 10, std::bind(
-                                    &artslam::lots::wrapper::Lidar::prior_odom_callback, lidar_list[i], _1));
+                                    &lots::slam::wrapper::Lidar::prior_odom_callback, lidar_list[i], _1));
                         }
                         lidar_list[i].start(&backend, config_file);
                         lidar_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::PointCloud2>(parse_sensor_topic(config_file, "lidar", i), sensor_qos, std::bind(
-                                &artslam::lots::wrapper::Lidar::callback,  lidar_list[i], _1));
-                        lidar_list[i].setBridge(bridge);
-                        std::string imu_topic = parse_imu_topic_for_tracker(config_file, "lidar", i);
+                                &lots::slam::wrapper::Lidar::callback,  lidar_list[i], _1));
+                        //TODO Add parsing function
+//                        std::string imu_topic = parse_imu_topic_for_tracker(config_file, "lidar", i);
+                        std::string imu_topic;
                         std::cout<<"This is the IMU topic "<<imu_topic<<std::endl;
                         if(!imu_topic.empty()) {
                             std::cout<<"IMU tight coupling enabled"<<std::endl;
                             lidar_list[i].imu_sub = n->create_subscription<sensor_msgs::msg::Imu>(imu_topic, sensor_qos, std::bind(
-                                    &artslam::lots::wrapper::Lidar::imu_callback, lidar_list[i], _1));
+                                    &lots::slam::wrapper::Lidar::imu_callback, lidar_list[i], _1));
                         }
-                        backend.backend_handler->add_sensor_graph("lidar", i);
+                        backend.backend_handler->add_sensor_graph(LIDAR, i);
                     }
                     else
                     {
@@ -105,7 +107,7 @@ namespace artslam::lots::wrapper
                         imu_list.push_back(Imu(i));
                         imu_list[i].start(&backend, config_file);
                         imu_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::Imu>(parse_sensor_topic(config_file, "imu", i), sensor_qos, std::bind(
-                                &artslam::lots::wrapper::Imu::callback,  imu_list[i], _1));
+                                &lots::slam::wrapper::Imu::callback,  imu_list[i], _1));
                     }
                     else
                     {
@@ -121,7 +123,7 @@ namespace artslam::lots::wrapper
                     {
                         gnss_list.push_back(Gnss(i));
                         gnss_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::NavSatFix>( parse_sensor_topic(config_file, "gnss", i), sensor_qos, std::bind(
-                                &artslam::lots::wrapper::Gnss::callback, gnss_list[i], _1));
+                                &lots::slam::wrapper::Gnss::callback, gnss_list[i], _1));
                     }
                     else
                     {
@@ -154,8 +156,8 @@ namespace artslam::lots::wrapper
                     if (parse_sensor_availability(config_file, "radar", i))
                     {
                         radar_list.push_back(Radar(i));
-                        radar_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::PointCloud2>(parse_sensor_topic(config_file, "radar", i), sensor_qos, std::bind(&artslam::lots::wrapper::Radar::callback, radar_list[i], _1));
-                        backend.backend_handler->add_sensor_graph("radar", i);
+                        radar_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::PointCloud2>(parse_sensor_topic(config_file, "radar", i), sensor_qos, std::bind(&lots::slam::wrapper::Radar::callback, radar_list[i], _1));
+                        backend.backend_handler->add_sensor_graph(RADAR, i);
                     }
                     else
                     {
@@ -171,8 +173,8 @@ namespace artslam::lots::wrapper
                     {
                         odom_list.push_back(Odom(i));
                         odom_list[i].sensor_sub = n->create_subscription<nav_msgs::msg::Odometry>(parse_sensor_topic(config_file, "odom", i), sensor_qos, std::bind(
-                            &artslam::lots::wrapper::Odom::callback, odom_list[i], _1));
-                        backend.backend_handler->add_sensor_graph("odom", i);
+                            &lots::slam::wrapper::Odom::callback, odom_list[i], _1));
+                        backend.backend_handler->add_sensor_graph(ODOMETRY, i);
                     }
                     else
                     {
@@ -182,7 +184,7 @@ namespace artslam::lots::wrapper
                 odom_count -= sub_disabled;
 
                 // linking back-end with loop detectors
-                backend.backend_handler->set_loop_detector(loop_detector_list[0].loop_detector.get());
+                backend.backend_handler->set_lidar_loop_detector(loop_detector_list[0].loop_detector.get());
 
                 std::string camera_start = (camera_count > 0) ? camera_list[0]._start_color : "";
                 std::string lidar_start = (lidar_count > 0) ? lidar_list[0]._start_color : "";

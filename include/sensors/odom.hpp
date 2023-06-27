@@ -34,7 +34,7 @@
 using namespace std::placeholders;
 
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Odom
      *
@@ -43,7 +43,7 @@ namespace artslam::lots::wrapper {
     class Odom : public Sensor<nav_msgs::msg::Odometry> {
     public:
         explicit Odom(int id) {
-            _sensor_type = "ODOM";
+            _sensor_type = ODOMETRY;
             _sensor_id = id;
 
             _start_color = "\033[1;34m";
@@ -60,7 +60,7 @@ namespace artslam::lots::wrapper {
          */
 //        void setSubscribers(std::shared_ptr<rclcpp::Node> n) {
 //            sensor_sub = n->create_subscription<nav_msgs::msg::Odometry>(_topic, _buffer, std::bind(
-//                    &artslam::lots::wrapper::Odom::callback, this, _1));
+//                    &lots::slam::wrapper::Odom::callback, this, _1));
 //        };
 
         /**

@@ -33,7 +33,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Camera
      *
@@ -43,7 +43,7 @@ namespace artslam::lots::wrapper {
     {
     public:
         explicit Camera(int id) {
-            _sensor_type = "CAMERA";
+            _sensor_type = CAMERA;
             _sensor_id = id;
 
             _start_color = "\033[1;31m";
@@ -60,7 +60,7 @@ namespace artslam::lots::wrapper {
          */
 //        void setSubscribers(std::shared_ptr<rclcpp::Node> n) {
 //            // commented out, since the callback does nothing
-//            //sensor_sub = n->subscribe(_topic, _buffer, &artslam::lots::wrapper::Camera::callback, this);
+//            //sensor_sub = n->subscribe(_topic, _buffer, &lots::slam::wrapper::Camera::callback, this);
 //        };
 
         /**

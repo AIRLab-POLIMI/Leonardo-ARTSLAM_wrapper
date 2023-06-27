@@ -35,7 +35,7 @@
 
 using namespace std::placeholders;
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Radar
      *
@@ -45,7 +45,7 @@ namespace artslam::lots::wrapper {
     {
     public:
         explicit Radar(int id) {
-            _sensor_type = "RADAR";
+            _sensor_type = RADAR;
             _sensor_id = id;
 
             _start_color = "\033[1;36m";
@@ -61,9 +61,9 @@ namespace artslam::lots::wrapper {
          * @param n ROS Node reference
          */
 //        void setSubscribers(std::shared_ptr<rclcpp::Node> n) {
-//            //sensor_sub = n->subscribe(_topic, _buffer, &artslam::lots::wrapper::Radar::callback, this);
+//            //sensor_sub = n->subscribe(_topic, _buffer, &lots::slam::wrapper::Radar::callback, this);
 //            sensor_sub = n->create_subscription<sensor_msgs::msg::PointCloud2>(_topic, _buffer, std::bind(
-//                    &artslam::lots::wrapper::Radar::callback, this, _1));
+//                    &lots::slam::wrapper::Radar::callback, this, _1));
 //        };
 
         /**

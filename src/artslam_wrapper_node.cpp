@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    artslam::lots::wrapper::Controller c;
+    lots::slam::wrapper::Controller c;
 
 
     rclcpp::executors::MultiThreadedExecutor executor;

@@ -22,8 +22,9 @@
  */
 #include "kernel/backend.hpp"
 
-namespace artslam::lots::wrapper
+namespace lots::slam::wrapper
         {
+    using namespace lots::slam::utils;
             /**
              * Initialize the back-end.
              *
@@ -38,9 +39,9 @@ namespace artslam::lots::wrapper
 
 
                 /* information matrix calculator ---------------------------------------------------------------------*/
-                std::cout << std::endl << ">> INFORMATION-MATRIX-CALCULATOR" << std::endl;
-                InformationMatrixCalculator::Configuration im_config = parse_information_matrix_calculator(config_file);
-                information_matrix_calculator = std::make_shared<InformationMatrixCalculator>(im_config);
+//                std::cout << std::endl << ">> INFORMATION-MATRIX-CALCULATOR" << std::endl;
+//                InformationMatrixCalculator::Configuration im_config = parse_information_matrix_calculator(config_file);
+//                information_matrix_calculator = std::make_shared<InformationMatrixCalculator>(im_config);
 
                 /* backend handler ---------------------------------------------------------------------------------- */
                 std::cout << std::endl << ">> BACKEND-HANDLER" << std::endl;
@@ -50,7 +51,7 @@ namespace artslam::lots::wrapper
 
                 // building up everything together
                 backend_handler->set_graph_handler(graph_handler.get());
-                backend_handler->set_information_matrix_calculator(information_matrix_calculator.get());
+//                backend_handler->set_information_matrix_calculator(information_matrix_calculator.get());
                 backend_handler->register_slam_output_observer(bridge);
             }
         }

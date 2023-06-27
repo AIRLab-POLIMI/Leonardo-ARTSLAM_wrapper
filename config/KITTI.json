@@ -1,0 +1,182 @@
+{
+  "slam_paths": {
+    "pointclouds" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/velodyne_points/data/",
+    "pointclouds_timestamps" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/velodyne_points/timestamps.txt",
+    "imu" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/oxts/data/",
+    "imu_timestamps" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/oxts/timestamps.txt",
+    "gps" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/oxts/data/",
+    "gps_timestamps" : "/home/matteo/Datasets/2011_09_26/2011_09_26_drive_0005_sync/oxts/timestamps.txt"
+  },
+  "tf_settings": {
+    "tf_environment": {
+      "tf_root2base": {
+        "root": "lidar.frontend_0",
+        "base": "base_link",
+        "tf": [0.11, 0.000, 0.73, 0.000, 0.000, 0.000, 1.000]
+      }
+    },
+    "tf_sensors": {
+      "tf_0": {
+        "source": "odom.frontend_0",
+        "target": "base_link",
+        "tf": [0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000]
+      },
+      "tf_1": {
+        "source": "imu.frontend_0",
+        "target": "base_link",
+        "tf": [-0.120, 0.000, -0.780, 1.000, 0.000, 0.000, 0.000]
+      }
+    }
+  },
+  "sensors": {
+    "radar": {},
+    "imu": {},
+    "lidar": {
+      "frontend_0": {
+        "enabled": true,
+        "topic": "/ouster/points",
+        "prior_odom_topic": "/odom",
+        "buffer": 64,
+        "block_type": 0,
+        "modules": {
+          "prefilterer": {
+            "enable_prefilterer": true,
+            "downsample_resolution": 0.2,
+            "radius_radius": 0.4,
+            "radius_min_neighbours": 2,
+            "use_distance_filter": true,
+            "distance_threshold": [1.5, 80],
+            "enable_deskewing": false,
+            "scan_period": 0.1,
+            "verbose": true
+          },
+          "ground_detector": {
+            "enable_ground_detector": false,
+            "tilt_angle": 0.0,
+            "sensor_height": 1.0,
+            "clipping_range": 1.0,
+            "floor_points_threshold": 256,
+            "use_normal_filtering": true,
+            "normal_filtering_threshold": 10.0,
+            "rough_ground_check": false,
+            "rough_ground_max_dist": 3.0,
+            "verbose": true
+          },
+          "tracker": {
+            "enable_tracker": true,
+            "keyframe_delta_trans": 3.0,
+            "keyframe_delta_angle": 1.0,
+            "min_height": -1.0,
+            "use_imu_preintegration": false,
+            "use_prior_odometry": false,
+            "verbose": true
+          },
+          "registration_tracker": {
+            "registration_method_name": "FAST_GICP",
+            "registration_num_threads": 0,
+            "registration_transform_epsilon": 1.0e-2,
+            "registration_max_iterations": 64,
+            "registration_max_corr_distance": 2.0,
+            "registration_corr_randomness": 20,
+            "registration_resolution": 1.0,
+            "registration_use_reciprocal_corr": false,
+            "registration_max_optimizer_iterations": 20,
+            "registration_nn_search_method": "DIRECT7",
+            "ndt_resolution": 0.5,
+            "verbose": true
+          }
+        }
+      }
+    },
+    "camera": {},
+    "gnss": {},
+    "odom": {}
+  },
+  "loop_detectors": {
+    "method_0": {
+      "name": "full_lidar",
+      "enabled": true,
+      "loop_detector": {
+        "distance_threshold": 30.0,
+        "accumulated_distance_threshold": 25.0,
+        "distance_from_last_edge_threshold": 5.0,
+        "use_scan_context": true,
+        "best_k_contexts": 2,
+        "model": "",
+        "fitness_score_max_range": 100000.0,
+        "fitness_score_threshold": 2.0,
+        "verbose": true
+      },
+      "registration_loop_detector": {
+        "registration_method_name": "FAST_GICP",
+        "registration_num_threads": 0,
+        "registration_transform_epsilon": 1e-5,
+        "registration_max_iterations": 128,
+        "registration_max_corr_distance": 10.0,
+        "registration_corr_randomness": 20,
+        "registration_resolution": 1.0,
+        "registration_use_reciprocal_corr": false,
+        "registration_max_optimizer_iterations": 20,
+        "registration_nn_search_method": "DIRECT7",
+        "ndt_resolution": 0.5,
+        "verbose": true
+      }
+    }
+  },
+  "backend": {
+    "information_matrix_calculator": {
+      "constant_information_matrix": false,
+      "translation_constant_stddev": 0.5,
+      "rotation_constant_stddev": 0.1,
+      "variance_gain": 20.0,
+      "minimum_translation_stddev": 0.05,
+      "maximum_translation_stddev": 0.5,
+      "minimum_rotation_stddev": 0.05,
+      "maximum_rotation_stddev": 0.2,
+      "fitness_score_threshold": 2.5,
+      "verbose": true
+    },
+    "backend_handler": {
+      "first_graph_node_adaptive": true,
+      "odometry_edge_robust_kernel": "NONE",
+      "odometry_edge_robust_kernel_size": 1.0,
+      "floor_edge_stddev": 10.0,
+      "floor_edge_robust_kernel": "NONE",
+      "floor_edge_robust_kernel_size": 1.0,
+      "imu_enabled": true,
+      "imu_to_lidar_rotation": [
+        1,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        -1
+      ],
+      "imu_acceleration_stddev": 1.0,
+      "imu_orientation_stddev": 1.0,
+      "imu_acceleration_edge_robust_kernel": "NONE",
+      "imu_acceleration_edge_robust_kernel_size": 1.0,
+      "imu_orientation_edge_robust_kernel": "NONE",
+      "imu_orientation_edge_robust_kernel_size": 1.0,
+      "gnss_enabled": true,
+      "gnss_to_lidar_translation": [
+        0.000,
+        0.000,
+        0.000
+      ],
+      "gnss_edge_xy_stddev": 10.0,
+      "gnss_edge_z_stddev": 5.0,
+      "gnss_edge_robust_kernel": "NONE",
+      "gnss_edge_robust_kernel_size": 1.0,
+      "loop_edge_robust_kernel": "Huber",
+      "loop_edge_robust_kernel_size": 1.0,
+      "optimizer_iterations": 512,
+      "maximum_unoptimized_keyframes": 2,
+      "send_to_observers": true,
+      "verbose": true
+    }
+  }
+}

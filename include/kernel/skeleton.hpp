@@ -38,7 +38,7 @@
 
 #include <tf2_ros/transform_listener.h>
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * Skeleton
      *

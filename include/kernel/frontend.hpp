@@ -25,18 +25,18 @@
 
 // ARTSLAM libraries
 #include <utils/configuration_parser.h>
-#include <frontend/frontend_module.h>
-#include <sensors/lidar/lidar_registration.h>
-#include <sensors/lidar/lidar_tracker.h>
-#include <sensors/lidar/lidar_ground_detector.h>
-#include <sensors/lidar/lidar_prefilterer.h>
-#include <sensors/odom/odom_tracker.h>
-#include <artslam_io/pointcloud_io.h>
+#include <frontend/lidar/lidar_registration.h>
+#include <frontend/lidar/lidar_tracker.h>
+#include <frontend/lidar/lidar_ground_detector.h>
+#include <frontend/lidar/lidar_prefilterer.h>
+//#include <frontend/odom/odom_tracker.h>
+//#include <artslam_io/pointcloud_io.h>
 #include <map>
 #include <string>
 #include <controller/bridge_visualizer.hpp>
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
+    using namespace lots::core::types;
     /**
      * FrontEnd
      *
@@ -45,17 +45,17 @@ namespace artslam::lots::wrapper {
      */
     class Frontend {
     public:
-        std::map<std::string, std::shared_ptr<FrontendModule>> modules;
+        std::map<std::string, std::shared_ptr<FrontEndModule>> modules;
 
         Frontend() = default;
 
-        void start(std::string config_file, std::string sensor, int id);
+        void start(std::string config_file, SensorType sensor, int id);
 
-        void addPrefilterer(std::string config_file, std::string sensor, int id);
+        void addPrefilterer(std::string config_file, SensorType sensor, int id);
 
-        void addTracker(std::string config_file, std::string sensor, int id);
+        void addTracker(std::string config_file, SensorType sensor, int id);
 
-        void addGroundDetector(std::string config_file, std::string sensor, int id);
+        void addGroundDetector(std::string config_file, SensorType sensor, int id);
     };
 }
 

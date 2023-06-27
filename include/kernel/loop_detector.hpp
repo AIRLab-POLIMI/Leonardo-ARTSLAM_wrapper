@@ -25,10 +25,10 @@
 
 // ARTSLAM libraries
 #include <utils/configuration_parser.h>
-#include <sensors/lidar/lidar_registration.h>
+#include <frontend/lidar/lidar_registration.h>
 #include <loop_detectors/full_lidar.h>
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
     /**
      * LoopDetector
      *

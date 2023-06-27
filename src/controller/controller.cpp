@@ -26,7 +26,7 @@
 
 using namespace std::placeholders;
 
-namespace artslam::lots::wrapper {
+namespace lots::slam::wrapper {
 // Initialize the node by reading the configuration file and setting the kernel.
 Controller::Controller() : param_value(0), bridge(node)
 {

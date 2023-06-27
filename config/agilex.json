@@ -1,0 +1,290 @@
+{
+  "slam_paths": {
+    "pointclouds": "",
+    "pointclouds_timestamps": "",
+    "imu": "",
+    "imu_timestamps": "",
+    "gps": "",
+    "gps_timestamps": ""
+  },
+  "tf_settings": {
+    "tf_environment": {
+      "tf_root2base": {
+        "root": "lidar.frontend_0",
+        "base": "base_link",
+        "tf": [0.11, 0.000, 0.73, 0.000, 0.000, 0.000, 1.000]
+      }
+    },
+    "tf_sensors": {
+      "tf_0": {
+        "source": "odom.frontend_0",
+        "target": "base_link",
+        "tf": [0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000]
+      },
+      "tf_1": {
+        "source": "radar.frontend_0",
+        "target": "base_link",
+        "tf": [0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000]
+      }
+    }
+  },
+  "sensors": {
+    "radar": {
+      "frontend_0": {
+        "enabled": true,
+        "topic": "/radar",
+        "buffer": 1024,
+        "modules": {}
+      }
+    },
+    "imu": {
+      "frontend_0": {
+        "enabled": false,
+        "topic": "/mavros/imu/data_raw",
+        "buffer": 1024,
+        "modules": {}
+      }
+    },
+    "lidar": {
+      "frontend_0": {
+        "enabled": true,
+        "topic": "/ouster/points",
+        "prior_odom_topic": "/odom",
+        "buffer": 64,
+        "modules": {
+          "prefilterer": {
+            "downsample_method": "VOXELGRID",
+            "downsample_resolution": 0.2,
+            "outlier_removal_method": "RADIUS",
+            "radius_radius": 0.4,
+            "radius_min_neighbours": 2,
+            "use_distance_filter": true,
+            "distance_near_threshold": 1.5,
+            "distance_far_threshold": 80.0,
+            "enable_deskewing": false,
+            "scan_period": 0.1,
+            "imu_to_lidar_rotation": [
+              1,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              1
+            ],
+            "verbose": false
+          },
+          "ground_detector": {
+            "tilt_angle": 0.0,
+            "sensor_height": 1.0,
+            "clipping_range": 1.0,
+            "floor_points_threshold": 512,
+            "use_normal_filtering": true,
+            "normal_filtering_threshold": 10.0,
+            "rough_ground_check": false,
+            "rough_ground_max_dist": 3.0,
+            "verbose": false
+          },
+          "tracker": {
+            "keyframe_delta_trans": 5.0,
+            "keyframe_delta_angle": 1.0,
+            "keyframe_delta_time": 1000000000,
+            "use_height_filter": true,
+            "filter_axis": "z",
+            "min_height": -0.9,
+            "use_prior_odometry": true,
+            "prior_odometry_delta_trans": 2.5,
+            "prior_odometry_delta_angle": 0.5,
+            "max_odometry_delta_time": 100000000,
+            "initial_orientation": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "initial_translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "utm_compensated": true,
+            "verbose": false
+          },
+          "registration_tracker": {
+            "registration_method_name": "FAST_GICP",
+            "registration_num_threads": 0,
+            "registration_transform_epsilon": 1.0e-6,
+            "registration_max_iterations": 128,
+            "registration_max_corr_distance": 2.0,
+            "registration_corr_randomness": 20,
+            "registration_resolution": 1.0,
+            "registration_use_reciprocal_corr": false,
+            "registration_max_optimizer_iterations": 20,
+            "registration_nn_search_method": "DIRECT7",
+            "ndt_resolution": 0.5,
+            "verbose": false
+          }
+        }
+      }
+    },
+    "camera": {},
+    "gnss": {
+      "frontend_0": {
+        "enabled": false,
+        "topic": "/fix",
+        "buffer": 1024,
+        "modules": {}
+      }
+    },
+    "odom": {
+      "frontend_0": {
+        "enabled": false,
+        "topic": "/odom",
+        "buffer": 1024,
+        "modules": {
+          "tracker": {
+            "keyframe_delta_trans": 2.0,
+            "keyframe_delta_angle": 0.4,
+            "keyframe_delta_time": 400000000,
+            "use_height_filter": true,
+            "filter_axis": "z",
+            "min_height": -0.5,
+            "use_prior_odometry": false,
+            "prior_odometry_delta_trans": 2.5,
+            "prior_odometry_delta_angle": 0.5,
+            "max_odometry_delta_time": 100000000,
+            "initial_orientation": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "initial_translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "utm_compensated": true,
+            "verbose": false
+          }
+        }
+      }
+    }
+  },
+  "loop_detectors": {
+    "method_1": {
+      "name": "deep_radar",
+      "enabled": true,
+      "loop_detector": {
+        "distance_threshold": 80.0,
+        "accumulated_distance_threshold": 160.0,
+        "distance_from_last_edge_threshold": 1.0,
+        "use_scan_context": true,
+        "best_k_contexts": 20,
+        "fitness_score_max_range": 1.0,
+        "fitness_score_threshold": 0.60,
+        "model": "/home/mirko/Desktop/Code/Thesis/easymile/src/ARTSLAM/weights/googlenet_64_unweighted_fixed.pt",
+        "verbose": true
+      }
+    },
+    "method_0": {
+      "name": "full_lidar",
+      "enabled": false,
+      "loop_detector": {
+        "distance_threshold": 30.0,
+        "accumulated_distance_threshold": 25.0,
+        "distance_from_last_edge_threshold": 5.0,
+        "use_scan_context": true,
+        "best_k_contexts": 2,
+        "fitness_score_max_range": 100000.0,
+        "fitness_score_threshold": 2.0,
+        "model": "",
+        "verbose": true
+      },
+      "registration_loop_detector": {
+        "registration_method_name": "FAST_GICP",
+        "registration_num_threads": 0,
+        "registration_transform_epsilon": 1e-5,
+        "registration_max_iterations": 128,
+        "registration_max_corr_distance": 10.0,
+        "registration_corr_randomness": 20,
+        "registration_resolution": 1.0,
+        "registration_use_reciprocal_corr": false,
+        "registration_max_optimizer_iterations": 20,
+        "registration_nn_search_method": "DIRECT7",
+        "ndt_resolution": 0.5,
+        "verbose": true
+      }
+    }
+  },
+  "backend": {
+    "information_matrix_calculator": {
+      "constant_information_matrix": false,
+      "translation_constant_stddev": 0.5,
+      "rotation_constant_stddev": 0.1,
+      "variance_gain": 20.0,
+      "minimum_translation_stddev": 0.05,
+      "maximum_translation_stddev": 0.5,
+      "minimum_rotation_stddev": 0.05,
+      "maximum_rotation_stddev": 0.2,
+      "fitness_score_threshold": 2.5,
+      "verbose": false
+    },
+    "backend_handler": {
+      "use_anchor_graph_node": true,
+      "anchor_graph_node_stddev": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "fix_first_graph_node": false,
+      "first_graph_node_adaptive": true,
+      "odometry_edge_robust_kernel": "NONE",
+      "odometry_edge_robust_kernel_size": 1.0,
+      "floor_edge_stddev": 10.0,
+      "floor_edge_robust_kernel": "NONE",
+      "floor_edge_robust_kernel_size": 1.0,
+      "imu_acceleration_enabled": true,
+      "imu_orientation_enabled": false,
+      "imu_to_lidar_rotation": [
+        1,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        -1
+      ],
+      "imu_acceleration_stddev": 1.0,
+      "imu_orientation_stddev": 1.0,
+      "imu_acceleration_edge_robust_kernel": "NONE",
+      "imu_acceleration_edge_robust_kernel_size": 1.0,
+      "imu_orientation_edge_robust_kernel": "NONE",
+      "imu_orientation_edge_robust_kernel_size": 1.0,
+      "gnss_enabled": true,
+      "gnss_to_lidar_translation": [
+        0.000,
+        0.000,
+        0.000
+      ],
+      "gnss_edge_xy_stddev": 10.0,
+      "gnss_edge_z_stddev": 5.0,
+      "gnss_edge_robust_kernel": "NONE",
+      "gnss_edge_robust_kernel_size": 1.0,
+      "loop_edge_robust_kernel": "Huber",
+      "loop_edge_robust_kernel_size": 1.0,
+      "optimizer_iterations": 512,
+      "maximum_unoptimized_keyframes": 2,
+      "max_keyframes_per_update": 10,
+      "send_to_observers": true,
+      "verbose": false
+    }
+  }
+}
