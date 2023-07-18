@@ -1,7 +1,10 @@
 #include "controller/controller.hpp"
+#include <pcl/pcl_config.h>
 
 int main(int argc, char **argv)
 {
+    std::cout << PCL_VERSION_PRETTY << std::endl;
+
     rclcpp::init(argc, argv);
     lots::slam::wrapper::Controller c;
 

@@ -39,13 +39,12 @@ include_directories(${GTSAM_INCLUDE_DIR})
 #find_package(Boost REQUIRED COMPONENTS program_options log log_setup)
 #include_directories(${Boost_INCLUDE_DIRS})
 
-find_package(PCL REQUIRED)
-include_directories(${PCL_INCLUDE_DIRS})
-message("${PROJECT_NAME} - PCL version ${PCL_VERSION}")
+# find_package(PCL REQUIRED)
+# include_directories(${PCL_INCLUDE_DIRS})
+# message("${PROJECT_NAME} - PCL version ${PCL_VERSION}")
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
-message("${PROJECT_NAME} - OpenCV version ${OpenCV_VERSION}")
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -84,7 +83,7 @@ install(DIRECTORY
 )
 
 target_link_libraries(artslam_wrapper_node
-    ${PCL_LIBRARIES}
+    # ${PCL_LIBRARIES}
     gtsam
     ${LOTS_IO_FOUND}
     ${LOTS_UTILS_FOUND}

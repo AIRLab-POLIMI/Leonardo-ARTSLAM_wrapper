@@ -12,8 +12,8 @@ def generate_launch_description():
         name='wrapper_controller',
         output='screen',
         parameters=[{
-            'configuration_file': "/home/gianluca/development/humble/artslam_ws/src/ARTSLAM_wrapper/config/KITTI.json",
-            'results_path': "/home/gianluca/development/humble/artslam_ws/src/ARTSLAM_wrapper/results"
+            'configuration_file': "/home/gianluca/development/humble/SLAM/artslam_ws/src/ARTSLAM_wrapper/config/KITTI.json",
+            'results_path': "/home/gianluca/development/humble/SLAM/artslam_ws/src/ARTSLAM_wrapper/results"
         }],
         # prefix=['xterm -e gdb -q -ex run --args']
     )
