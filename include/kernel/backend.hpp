@@ -29,7 +29,7 @@
 #include <backend/graph_handler.h>
 #include <backend/backend_handler.h>
 #include <backend/information_matrix_calculator.h>
-#include "../controller/bridge_visualizer.hpp"
+//#include "../controller/bridge_visualizer.hpp"
 
 namespace lots::slam::wrapper {
     /**
@@ -46,7 +46,8 @@ namespace lots::slam::wrapper {
 
         Backend() = default;
 
-        void start(BridgeVisualizer *bridge, std::string config_file);
+//        void start(BridgeVisualizer *bridge, std::string config_file);
+        void start(std::string config_file);
     };
 }
 

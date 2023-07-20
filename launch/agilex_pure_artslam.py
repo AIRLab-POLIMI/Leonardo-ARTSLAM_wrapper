@@ -13,7 +13,8 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'configuration_file': "/home/gianluca/development/humble/SLAM/artslam_ws/src/ARTSLAM_wrapper/config/KITTI.json",
-            'results_path': "/home/gianluca/development/humble/SLAM/artslam_ws/src/ARTSLAM_wrapper/results"
+            'results_path': "/home/gianluca/development/humble/SLAM/artslam_ws/src/ARTSLAM_wrapper/results",
+            # 'imu_topic': '/ouster/imu'
         }],
         # prefix=['xterm -e gdb -q -ex run --args']
     )

@@ -27,13 +27,13 @@
 
 // ROS messages
 #include <sensor_msgs/msg/imu.hpp>
-#include <nav_msgs/msg/odometry.hpp>
+//#include <nav_msgs/msg/odometry.hpp>
 
 // TFs libraries
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2_eigen/tf2_eigen.hpp>
-#include <tf2_ros/transform_listener.h>
+//#include <tf2_ros/transform_broadcaster.h>
+//#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+//#include <tf2_eigen/tf2_eigen.hpp>
+//#include <tf2_ros/transform_listener.h>
 
 using namespace std::placeholders;
 
@@ -79,8 +79,7 @@ namespace lots::slam::wrapper {
         void callback(const sensor_msgs::msg::Imu &msg) override {
             IMU_MSG::Ptr _imu_msg(new IMU_MSG);
 
-            _imu_msg->header_.timestamp_ =
-                    (unsigned long) (msg.header.stamp.sec) * 1000000000ull + (unsigned long) (msg.header.stamp.nanosec);
+            _imu_msg->header_.timestamp_ = msg.header.stamp.sec * 1000000000ull + msg.header.stamp.nanosec;
 
             _imu_msg->header_.sequence_ = _count;
             _count++;

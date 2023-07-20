@@ -31,7 +31,7 @@ namespace lots::slam::wrapper
              * @param bridge BridgeVisualizer reference
              * @param config_file Configuration file
              */
-            void Backend::start(BridgeVisualizer* bridge, std::string config_file)
+            void Backend::start(std::string config_file)
             {
                 /* graph handler ------------------------------------------------------------------------------------ */
                 std::cout << ">> GRAPH-HANDLER" << std::endl;
@@ -52,6 +52,6 @@ namespace lots::slam::wrapper
                 // building up everything together
                 backend_handler->set_graph_handler(graph_handler.get());
 //                backend_handler->set_information_matrix_calculator(information_matrix_calculator.get());
-                backend_handler->register_slam_output_observer(bridge);
+//                backend_handler->register_slam_output_observer(bridge);
             }
         }

@@ -36,7 +36,7 @@
 #include "../sensors/odom.hpp"
 #include "../sensors/radar.hpp"
 
-#include <tf2_ros/transform_listener.h>
+//#include <tf2_ros/transform_listener.h>
 
 namespace lots::slam::wrapper {
     /**
@@ -63,7 +63,9 @@ namespace lots::slam::wrapper {
 
         Skeleton() = default;
 
-        void start(std::shared_ptr<rclcpp::Node> n, BridgeVisualizer *bridge, const std::string& config_file);
+//        void start(std::shared_ptr<rclcpp::Node> n, BridgeVisualizer *bridge, const std::string& config_file);
+        void start(std::shared_ptr<rclcpp::Node> n, const std::string& config_file);
+        void registerObserver(SLAMOutputObserver *observer);
 
         void addLoopDetector(int id) { loop_detector_list.emplace_back(id); };
     };

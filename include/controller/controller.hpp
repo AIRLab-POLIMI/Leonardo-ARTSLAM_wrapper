@@ -25,33 +25,36 @@
 
 // BridgeVisualizer
 #include "../kernel/skeleton.hpp"
-#include "bridge_visualizer.hpp"
+//#include "bridge_visualizer.hpp"
 
-#include "../kernel/frontend.hpp"
-#include "../sensors/gnss.hpp"
-#include "../sensors/imu.hpp"
-#include "../sensors/lidar.hpp"
+//#include "../kernel/frontend.hpp"
+//#include "../sensors/gnss.hpp"
+//#include "../sensors/imu.hpp"
+//#include "../sensors/lidar.hpp"
+
+#include "observers.h"
 
 // ROS libraries
 #include "rclcpp/rclcpp.hpp"
 
 // ROS messages
-#include <sensor_msgs/msg/imu.hpp>
-#include <sensor_msgs/msg/nav_sat_fix.hpp>
-#include <sensor_msgs/msg/point_cloud2.hpp>
-#include <std_msgs/msg/float64.hpp>
+//#include <sensor_msgs/msg/imu.hpp>
+//#include <sensor_msgs/msg/nav_sat_fix.hpp>
+//#include <sensor_msgs/msg/point_cloud2.hpp>
+//#include <std_msgs/msg/float64.hpp>
 
 // ROS service
 #include <std_srvs/srv/empty.hpp>
+#include "visualization_msgs/msg/marker_array.hpp"
 
 // PCL libraries
-#include <pcl_conversions/pcl_conversions.h>
+//#include <pcl_conversions/pcl_conversions.h>
 
 // TFs libraries
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_eigen/tf2_eigen.hpp>
+//#include <tf2_ros/transform_listener.h>
+//#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace lots::slam::wrapper {
 /**
@@ -61,19 +64,28 @@ namespace lots::slam::wrapper {
  * ARTSLAM kernel with the desired sensors by allocating front-ends and also the desired loop detectors.
  * The controller is also in charge to manage the bridge-visualizer.
  */
-    class Controller {
+    class Controller : public SLAMOutputObserver {
     private:
         /* Attributes ----------------------------------------------------------------------------------- */
         std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("offline_slam_server");
         rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service;
+        rclcpp::TimerBase::SharedPtr tf_pub;
+        rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr markers_pub;
+
+        std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
+        geometry_msgs::msg::TransformStamped latest_transform;
+        uint delay;
 
         // general params
         double param_value;
         std::string config_file;
         std::string results_path;
+        std::string base_frame;
+        std::string odom_frame;
+        std::string global_frame;
 
         // wrapper main components
-        BridgeVisualizer bridge;
+//        BridgeVisualizer bridge;
         Skeleton skeleton;
 
     public:
@@ -87,6 +99,13 @@ namespace lots::slam::wrapper {
             return node;
         };
 
+        // Observer updating interfaces
+        void update_slam_output_observer(const SLAMOutput_MSG::Ptr& slam_output, const std::string& id) override;
+        void update_slam_output_observer(const SLAMOutput_MSG::ConstPtr& slam_output, const std::string& id) override;
+
+        void init_tf();
+        void timer_callback();
+        void show_markers(std::vector<EigIsometry3d> poses);
     };
 }
 

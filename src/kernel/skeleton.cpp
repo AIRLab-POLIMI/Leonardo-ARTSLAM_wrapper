@@ -33,6 +33,10 @@ namespace lots::slam::wrapper
                 std::cout << std::endl << subtitle << std::endl << title << std::endl << subtitle << std::endl;
             }
 
+            void Skeleton::registerObserver(SLAMOutputObserver *observer) {
+                backend.backend_handler->register_slam_output_observer(observer);
+            }
+
             /**
              * Initialize kernel modules (Back-End + Loop Detector + Front-End).
              *
@@ -40,7 +44,7 @@ namespace lots::slam::wrapper
              * @param bridge BridgeVisualizer reference
              * @param config_file Configuration file
              */
-            void Skeleton::start(std::shared_ptr<rclcpp::Node> n, BridgeVisualizer* bridge, const std::string& config_file)
+            void Skeleton::start(std::shared_ptr<rclcpp::Node> n, const std::string& config_file)
             {
                 std::string tmp_prior_odom_topic;
                 int lidar_count = parse_num_sensors(config_file, "lidar");
@@ -53,7 +57,7 @@ namespace lots::slam::wrapper
 
                 // back-end initialization
                 print_header(" BACK-END ");
-                backend.start(bridge, config_file);
+                backend.start(config_file);
 
                 // loop detectors initialization
                 print_header(" LOOP-DETECTORS ");
@@ -81,10 +85,8 @@ namespace lots::slam::wrapper
                         lidar_list[i].start(&backend, config_file);
                         lidar_list[i].sensor_sub = n->create_subscription<sensor_msgs::msg::PointCloud2>(parse_sensor_topic(config_file, "lidar", i), sensor_qos, std::bind(
                                 &lots::slam::wrapper::Lidar::callback,  lidar_list[i], _1));
-                        //TODO Add parsing function
-//                        std::string imu_topic = parse_imu_topic_for_tracker(config_file, "lidar", i);
                         std::string imu_topic;
-                        std::cout<<"This is the IMU topic "<<imu_topic<<std::endl;
+                        n->get_parameter<std::string>("imu_topic", imu_topic);
                         if(!imu_topic.empty()) {
                             std::cout<<"IMU tight coupling enabled"<<std::endl;
                             lidar_list[i].imu_sub = n->create_subscription<sensor_msgs::msg::Imu>(imu_topic, sensor_qos, std::bind(
@@ -194,79 +196,79 @@ namespace lots::slam::wrapper
                 std::string gnss_start = (gnss_count > 0) ? gnss_list[0]._start_color : "";
                 std::string color_end = "\033[0m";
 
-                bool fancy = false;
-
-                if (fancy) {
-
-                std::cout << "\n\t   \t         +-:%*:=*  -:.---:\n"
-                             "\t \t            *+ -%. *= @:.- \n"
-                             "\t \t            #+ -%:.*= @---  \n"
-                             "\t          ::...::   #+ -+  =-.+--= \n"
-                             "\t          :%@@#:   .*+.              \n"
-                             "\t           =@@-      .::..         ...          ....                      \n"
-                             "\t           =@@:  .+#*===+#%*-  -%@@+=*@%=   :#@@*+++*%#=       -*=::=*= ----.   \n"
-                             "\t           =@@: =@%.      .#@#. *@@   :@@+   =@@      +@@=    :@.    .@ *=     \n"
-                             "\t           -@@::@@.         %@% +@@    @@-   -@@       =@@.   -@:     % **-=  \n"
-                             "\t           -@@:+@@.         =@@.+@%::-#%-    -@@       :%@:    =%-. .+* *=     \n"
-                             "\t           -@@::@@+         +@% +@%::+@%.    -@@       -@@  :----=*=:              \n"
-                             "\t           -@@: -@@+       :@%. +@%   +@%:   =@@      :@@-  =..@= +* .=: =-=.     \n"
-                             "\t           =@@:   =%%+---=*#=  .%@@:   -%@+..*@%++==+##+.      %- +*::%: %:-.       \n"
-                             "\t           =@@=      ::::.     :::::.    .--:.......           @- ++  %: % ::          \n"
-                             "\t           *@@=     =*                                         @- --  -. =--.          \n"
-                             "\t         .=@@@%#*##@@:                                        :=-                        \n"
-                             "\t     :+***++:                                                             -+**+++.       \n"
-                             "\t    .#@+:::+@=                            ...       ....        ..       :%@=:::*@:      \n"
-                             "\t    %@+     =- -@@#+++*@.:*@@=    .*@- =#+==+@. .+#+---=##= .*@@==#@*.  .@@=     *.      \n"
-                             "\t    %@%.        %@-    :  =%*@#.   -% :@#    - .%%       +@# :@%   #@+  .@@#.    .       \n"
-                             "\t    -@@@#=.     #@+---==  -% :%@-  -%  +@@*=.  *@+        #@+:@%  .%%.   =@@@*-.         \n"
-                             "\t     .+%@@@%-   #@+:--+-  :@   +@#::@    :=#@%:*@#        +@+:@%==@@.     .+%@@@#-       \n"
-                             "\t        .=%@@*  %@-     : :@    .#@#@ =     -@* #@=      .@#.:@#  -@%.       :+%@@=      \n"
-                             "\t   =       +@@.:@@#===+%:.*@=     -%@ *#=--=#*.  -##=--=+*=  +@@:  :#@=.+       #@@      \n"
-                             "\t   *-      -@@ ......... ....            ...        ...     .....    ...#.      +@#      \n"
-                             "\t   =@*=:.:=@%:                                                          *@*=:.-+@#.      \n"
-                             "\t    .-:=*+=:                                                             :-:+*+=:        \n"
-                             "\t\t\t\t\t:-+*#%@@@@@@@@@@%#*+-:                        \n"
-                             "\t\t\t\t   :=*%@@@@#*++==----==++*#@@@@%*=:                   \n"
-                             "\t\t\t\t-*@@@%*=:                      *%@@@*-                \n"
-                             "\t\t\t     -#@@@* "+odom_start+"..:::."+color_end+"                  "+radar_start+".:::.."+color_end+" *@@@#-             \n"
-                             "\t\t\t  .+@@@*  "+odom_start+"-*@@@%%@@%+."+color_end+"           "+radar_start+"=#@@%%@@@*-"+color_end+" :*@@@+.          \n"
-                             "\t\t\t +@@@=   "+odom_start+"#@%-     :+@@-"+color_end+"        "+radar_start+"-@@*:     -%@%."+color_end+"  =@@@+         \n"
-                             "\t\t       -@@@=    "+odom_start+"#@#         :@@:"+color_end+" :::: "+radar_start+".@@-         *@%"+color_end+"    =@@@-       \n"
-                             "\t\t      #@@*      "+odom_start+"@@:"+color_end+"   ODOM   "+odom_start+"%@="+color_end+"-@@@@="+radar_start+"-@% "+color_end+"  RADAR  "+radar_start+":@@"+color_end+"      *@@#      \n"
-                             "\t\t    :%@@-       "+odom_start+"%@+         .@@-"+color_end+"      "+radar_start+":@@.         +@@"+color_end+"       -@@%:    \n"
-                             "\t\t   :@@%.        "+odom_start+":@@*.      -%@+"+color_end+"        "+radar_start+"+@@-      .*@@:"+color_end+"        .%@@:   \n"
-                             "\t\t  .@@%.           "+odom_start+"+@@%#**#@@@@:"+color_end+"         "+radar_start+"#@@@#***%@@+."+color_end+"          .%@@.  \n"
-                             "\t\t  %@@.           +*:"+odom_start+".-===*@@@@*"+color_end+"        "+radar_start+":@@@@@===-:"+color_end+":**           .@@%  \n"
-                             "\t\t *@@-           #@#       "+odom_start+"-++-"+color_end+"          "+radar_start+":**+."+color_end+"      #@%.          -@@* \n"
-                             "\t\t.@@#      "+gnss_start+":-==-:-="+color_end+"           ("<< odom_count <<")      ("<< radar_count <<")           =-:"+imu_start+"-==-:"+color_end+"      #@@.\n"
-                             "\t\t+@@-   "+gnss_start+"=#@@#**#@@#-"+color_end+"                                "+imu_start+"-#@@%#*#@@%="+color_end+"   -@@+\n"
-                             "\t\t@@@   "+gnss_start+"#@#:      -%@*"+color_end+"                              "+imu_start+"*@%=      :#@%."+color_end+"  @@#\n"
-                             "\t\t@@%  "+gnss_start+"*@*          %@%@#-"+color_end+"                      "+imu_start+":#%%@@          *@#"+color_end+"  %@@\n"
-                             "\t\t@@%  "+gnss_start+"%@:"+color_end+"   GNSS   "+gnss_start+"+@@@@@."+color_end+"("<< gnss_count <<")   LOTS-SLAM   ("<< imu_count <<")"+imu_start+"@@@@@*"+color_end+"    IMU   "+imu_start+"-@%"+color_end+"  #@@\n"
-                             "\t\t@@%  "+gnss_start+"*@#          %@##*:"+color_end+"                      "+imu_start+":*%#@@.         #@*"+color_end+"  %@@\n"
-                             "\t\t@@@   "+gnss_start+"#@%-     .=%@+"+color_end+"                              "+imu_start+"+@@+.     -%@#"+color_end+"   @@#\n"
-                             "\t\t+@@-   "+gnss_start+"-*@@%##%@%*:"+color_end+"                                "+imu_start+".+%@@%%%@@*-"+color_end+"   -@@+\n"
-                             "\t\t.@@#      "+gnss_start+".::::"+color_end+":-+           ("<< camera_count <<")      ("<< lidar_count <<")           +="+imu_start+":::::."+color_end+"      #@@.\n"
-                             "\t\t *@@-           *@%.      "+camera_start+":+*=."+color_end+"         "+lidar_start+"=**="+color_end+"      .%@*           -@@* \n"
-                             "\t\t  %@@.           ==:-"+camera_start+"+****@@@@@"+color_end+"        "+lidar_start+"*@@@@%***+-"+color_end+":==           .@@%  \n"
-                             "\t\t  .@@%.          "+camera_start+".#@@#+==*%@@@="+color_end+"        "+lidar_start+".@@@%*==+*@@#:"+color_end+"          .%@@.  \n"
-                             "\t\t   :@@%.        "+camera_start+"-@@=       :#@#"+color_end+"        "+lidar_start+"*@%:       =@@-"+color_end+"        .%@@:   \n"
-                             "\t\t    :%@@-       "+camera_start+"@@=          @@-"+color_end+"      "+lidar_start+"-@@.         =@@"+color_end+"       -@@%:    \n"
-                             "\t\t      #@@*      "+camera_start+"@@-"+color_end+"  CAMERA  "+camera_start+"%@="+color_end+"-@@@@="+lidar_start+"=@@"+color_end+"   LIDAR  "+lidar_start+":@@"+color_end+"      *@@#      \n"
-                             "\t\t       -@@@=    "+camera_start+"*@%.        =@@."+color_end+"      "+lidar_start+".@@=         #@#"+color_end+"    =@@@-       \n"
-                             "\t\t\t +@@@=   "+camera_start+"*@@+:   .=#@%:"+color_end+"        "+lidar_start+".%@#=.   :+@@*"+color_end+"   =@@@+         \n"
-                             "\t\t\t  .+@@@*:  "+camera_start+"+#@@@@@%*-"+color_end+"            "+lidar_start+"-*%@@@@@#+"+color_end+"  :*@@@+.          \n"
-                             "\t\t\t     -#@@@*-.                            .-*@@@#-             \n"
-                             "\t\t\t\t-*@@@%*=:                    :=*%@@@*-                \n"
-                             "\t\t\t\t   :=*%@@@@#*++=------=++*#@@@@%*=:                   \n"
-                             "\t\t\t\t\t:-=*##%@@@@@@@@%##*=-:  " << std::endl;
-                } else {
+//                bool fancy = false;
+//
+//                if (fancy) {
+//
+//                std::cout << "\n\t   \t         +-:%*:=*  -:.---:\n"
+//                             "\t \t            *+ -%. *= @:.- \n"
+//                             "\t \t            #+ -%:.*= @---  \n"
+//                             "\t          ::...::   #+ -+  =-.+--= \n"
+//                             "\t          :%@@#:   .*+.              \n"
+//                             "\t           =@@-      .::..         ...          ....                      \n"
+//                             "\t           =@@:  .+#*===+#%*-  -%@@+=*@%=   :#@@*+++*%#=       -*=::=*= ----.   \n"
+//                             "\t           =@@: =@%.      .#@#. *@@   :@@+   =@@      +@@=    :@.    .@ *=     \n"
+//                             "\t           -@@::@@.         %@% +@@    @@-   -@@       =@@.   -@:     % **-=  \n"
+//                             "\t           -@@:+@@.         =@@.+@%::-#%-    -@@       :%@:    =%-. .+* *=     \n"
+//                             "\t           -@@::@@+         +@% +@%::+@%.    -@@       -@@  :----=*=:              \n"
+//                             "\t           -@@: -@@+       :@%. +@%   +@%:   =@@      :@@-  =..@= +* .=: =-=.     \n"
+//                             "\t           =@@:   =%%+---=*#=  .%@@:   -%@+..*@%++==+##+.      %- +*::%: %:-.       \n"
+//                             "\t           =@@=      ::::.     :::::.    .--:.......           @- ++  %: % ::          \n"
+//                             "\t           *@@=     =*                                         @- --  -. =--.          \n"
+//                             "\t         .=@@@%#*##@@:                                        :=-                        \n"
+//                             "\t     :+***++:                                                             -+**+++.       \n"
+//                             "\t    .#@+:::+@=                            ...       ....        ..       :%@=:::*@:      \n"
+//                             "\t    %@+     =- -@@#+++*@.:*@@=    .*@- =#+==+@. .+#+---=##= .*@@==#@*.  .@@=     *.      \n"
+//                             "\t    %@%.        %@-    :  =%*@#.   -% :@#    - .%%       +@# :@%   #@+  .@@#.    .       \n"
+//                             "\t    -@@@#=.     #@+---==  -% :%@-  -%  +@@*=.  *@+        #@+:@%  .%%.   =@@@*-.         \n"
+//                             "\t     .+%@@@%-   #@+:--+-  :@   +@#::@    :=#@%:*@#        +@+:@%==@@.     .+%@@@#-       \n"
+//                             "\t        .=%@@*  %@-     : :@    .#@#@ =     -@* #@=      .@#.:@#  -@%.       :+%@@=      \n"
+//                             "\t   =       +@@.:@@#===+%:.*@=     -%@ *#=--=#*.  -##=--=+*=  +@@:  :#@=.+       #@@      \n"
+//                             "\t   *-      -@@ ......... ....            ...        ...     .....    ...#.      +@#      \n"
+//                             "\t   =@*=:.:=@%:                                                          *@*=:.-+@#.      \n"
+//                             "\t    .-:=*+=:                                                             :-:+*+=:        \n"
+//                             "\t\t\t\t\t:-+*#%@@@@@@@@@@%#*+-:                        \n"
+//                             "\t\t\t\t   :=*%@@@@#*++==----==++*#@@@@%*=:                   \n"
+//                             "\t\t\t\t-*@@@%*=:                      *%@@@*-                \n"
+//                             "\t\t\t     -#@@@* "+odom_start+"..:::."+color_end+"                  "+radar_start+".:::.."+color_end+" *@@@#-             \n"
+//                             "\t\t\t  .+@@@*  "+odom_start+"-*@@@%%@@%+."+color_end+"           "+radar_start+"=#@@%%@@@*-"+color_end+" :*@@@+.          \n"
+//                             "\t\t\t +@@@=   "+odom_start+"#@%-     :+@@-"+color_end+"        "+radar_start+"-@@*:     -%@%."+color_end+"  =@@@+         \n"
+//                             "\t\t       -@@@=    "+odom_start+"#@#         :@@:"+color_end+" :::: "+radar_start+".@@-         *@%"+color_end+"    =@@@-       \n"
+//                             "\t\t      #@@*      "+odom_start+"@@:"+color_end+"   ODOM   "+odom_start+"%@="+color_end+"-@@@@="+radar_start+"-@% "+color_end+"  RADAR  "+radar_start+":@@"+color_end+"      *@@#      \n"
+//                             "\t\t    :%@@-       "+odom_start+"%@+         .@@-"+color_end+"      "+radar_start+":@@.         +@@"+color_end+"       -@@%:    \n"
+//                             "\t\t   :@@%.        "+odom_start+":@@*.      -%@+"+color_end+"        "+radar_start+"+@@-      .*@@:"+color_end+"        .%@@:   \n"
+//                             "\t\t  .@@%.           "+odom_start+"+@@%#**#@@@@:"+color_end+"         "+radar_start+"#@@@#***%@@+."+color_end+"          .%@@.  \n"
+//                             "\t\t  %@@.           +*:"+odom_start+".-===*@@@@*"+color_end+"        "+radar_start+":@@@@@===-:"+color_end+":**           .@@%  \n"
+//                             "\t\t *@@-           #@#       "+odom_start+"-++-"+color_end+"          "+radar_start+":**+."+color_end+"      #@%.          -@@* \n"
+//                             "\t\t.@@#      "+gnss_start+":-==-:-="+color_end+"           ("<< odom_count <<")      ("<< radar_count <<")           =-:"+imu_start+"-==-:"+color_end+"      #@@.\n"
+//                             "\t\t+@@-   "+gnss_start+"=#@@#**#@@#-"+color_end+"                                "+imu_start+"-#@@%#*#@@%="+color_end+"   -@@+\n"
+//                             "\t\t@@@   "+gnss_start+"#@#:      -%@*"+color_end+"                              "+imu_start+"*@%=      :#@%."+color_end+"  @@#\n"
+//                             "\t\t@@%  "+gnss_start+"*@*          %@%@#-"+color_end+"                      "+imu_start+":#%%@@          *@#"+color_end+"  %@@\n"
+//                             "\t\t@@%  "+gnss_start+"%@:"+color_end+"   GNSS   "+gnss_start+"+@@@@@."+color_end+"("<< gnss_count <<")   LOTS-SLAM   ("<< imu_count <<")"+imu_start+"@@@@@*"+color_end+"    IMU   "+imu_start+"-@%"+color_end+"  #@@\n"
+//                             "\t\t@@%  "+gnss_start+"*@#          %@##*:"+color_end+"                      "+imu_start+":*%#@@.         #@*"+color_end+"  %@@\n"
+//                             "\t\t@@@   "+gnss_start+"#@%-     .=%@+"+color_end+"                              "+imu_start+"+@@+.     -%@#"+color_end+"   @@#\n"
+//                             "\t\t+@@-   "+gnss_start+"-*@@%##%@%*:"+color_end+"                                "+imu_start+".+%@@%%%@@*-"+color_end+"   -@@+\n"
+//                             "\t\t.@@#      "+gnss_start+".::::"+color_end+":-+           ("<< camera_count <<")      ("<< lidar_count <<")           +="+imu_start+":::::."+color_end+"      #@@.\n"
+//                             "\t\t *@@-           *@%.      "+camera_start+":+*=."+color_end+"         "+lidar_start+"=**="+color_end+"      .%@*           -@@* \n"
+//                             "\t\t  %@@.           ==:-"+camera_start+"+****@@@@@"+color_end+"        "+lidar_start+"*@@@@%***+-"+color_end+":==           .@@%  \n"
+//                             "\t\t  .@@%.          "+camera_start+".#@@#+==*%@@@="+color_end+"        "+lidar_start+".@@@%*==+*@@#:"+color_end+"          .%@@.  \n"
+//                             "\t\t   :@@%.        "+camera_start+"-@@=       :#@#"+color_end+"        "+lidar_start+"*@%:       =@@-"+color_end+"        .%@@:   \n"
+//                             "\t\t    :%@@-       "+camera_start+"@@=          @@-"+color_end+"      "+lidar_start+"-@@.         =@@"+color_end+"       -@@%:    \n"
+//                             "\t\t      #@@*      "+camera_start+"@@-"+color_end+"  CAMERA  "+camera_start+"%@="+color_end+"-@@@@="+lidar_start+"=@@"+color_end+"   LIDAR  "+lidar_start+":@@"+color_end+"      *@@#      \n"
+//                             "\t\t       -@@@=    "+camera_start+"*@%.        =@@."+color_end+"      "+lidar_start+".@@=         #@#"+color_end+"    =@@@-       \n"
+//                             "\t\t\t +@@@=   "+camera_start+"*@@+:   .=#@%:"+color_end+"        "+lidar_start+".%@#=.   :+@@*"+color_end+"   =@@@+         \n"
+//                             "\t\t\t  .+@@@*:  "+camera_start+"+#@@@@@%*-"+color_end+"            "+lidar_start+"-*%@@@@@#+"+color_end+"  :*@@@+.          \n"
+//                             "\t\t\t     -#@@@*-.                            .-*@@@#-             \n"
+//                             "\t\t\t\t-*@@@%*=:                    :=*%@@@*-                \n"
+//                             "\t\t\t\t   :=*%@@@@#*++=------=++*#@@@@%*=:                   \n"
+//                             "\t\t\t\t\t:-=*##%@@@@@@@@%##*=-:  " << std::endl;
+//                } else {
                     std::cout <<camera_start<<"camera"<<color_end<<std::endl;
                     std::cout <<lidar_start<<"lidar"<<color_end<<std::endl;
                     std::cout <<imu_start<<"imu"<<color_end<<std::endl;
                     std::cout <<radar_start<<"radar"<<color_end<<std::endl;
                     std::cout <<odom_start<<"odom"<<color_end<<std::endl;
                     std::cout <<gnss_start<<"gnss"<<color_end<<std::endl;
-                }
+//                }
             }
         }

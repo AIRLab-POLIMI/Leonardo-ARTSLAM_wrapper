@@ -27,11 +27,14 @@
 
 // ROS messages
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <nav_msgs/msg/odometry.hpp>
+//#include <nav_msgs/msg/odometry.hpp>
 
 // PCL libraries
 #include <pcl_conversions/pcl_conversions.h>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/convert.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+//#include <tf2_eigen/tf2_eigen.hpp>
 
 using namespace std::placeholders;
 
@@ -90,7 +93,6 @@ namespace lots::slam::wrapper {
          * @param msg Template message which depends from the sensor type.
          */
         void callback(const sensor_msgs::msg::PointCloud2 &msg) override {
-            std::cout<<"lidar callback"<<std::endl;
             pcl::PointCloud<Point3I>::Ptr cloud(new pcl::PointCloud<Point3I>());
             pcl::fromROSMsg(msg, *cloud);
             cloud->header.seq = counter;
@@ -103,20 +105,14 @@ namespace lots::slam::wrapper {
         };
 
         void imu_callback(const sensor_msgs::msg::Imu &msg) {
-            //TODO fix this
-            return;
             IMU_MSG::Ptr _imu_msg(new IMU_MSG);
 
-            _imu_msg->header_.timestamp_ =
-                    (unsigned long) (msg.header.stamp.sec) * 1000000000ull + (unsigned long) (msg.header.stamp.nanosec);
-
+            _imu_msg->header_.timestamp_ = msg.header.stamp.sec * 1000000000ull + msg.header.stamp.nanosec;
             _imu_msg->header_.frame_id_ = msg.header.frame_id;
-            //TODO change message
-//            _imu_msg->has_orientation_ = false;
-//            _imu_msg->has_linear_acceleration_ = true;
-//            _imu_msg->linear_acceleration_ << msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z;
-//            _imu_msg->has_angular_velocity_ = true;
-//            _imu_msg->angular_velocity_ << msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z;
+            _imu_msg->linear_acceleration_.value_ << msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z;
+            _imu_msg->linear_acceleration_.covariance_ = EigMatrix3d::Identity();
+            _imu_msg->angular_velocity_.value_ << msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z;
+            _imu_msg->angular_velocity_.covariance_ = EigMatrix3d::Identity();
 
             (static_cast<LiDARTracker*>(frontend.modules["tracker"].get()))->update_imu_observer(_imu_msg, "raw");
         }

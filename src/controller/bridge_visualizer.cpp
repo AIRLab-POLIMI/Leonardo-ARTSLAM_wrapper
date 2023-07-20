@@ -145,6 +145,7 @@ namespace lots::slam::wrapper {
     void
     BridgeVisualizer::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
         //TODO call draw map and poses and draw point cloud
+
     }
 
     void

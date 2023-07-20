@@ -48,7 +48,7 @@
             "distance_threshold": [1.5, 80],
             "enable_deskewing": false,
             "scan_period": 0.1,
-            "verbose": true
+            "verbose": false
           },
           "ground_detector": {
             "enable_ground_detector": false,
@@ -60,16 +60,16 @@
             "normal_filtering_threshold": 10.0,
             "rough_ground_check": false,
             "rough_ground_max_dist": 3.0,
-            "verbose": true
+            "verbose": false
           },
           "tracker": {
             "enable_tracker": true,
             "keyframe_delta_trans": 3.0,
             "keyframe_delta_angle": 1.0,
             "min_height": -1.0,
-            "use_imu_preintegration": false,
+            "use_imu_preintegration": true,
             "use_prior_odometry": false,
-            "verbose": true
+            "verbose": false
           },
           "registration_tracker": {
             "registration_method_name": "FAST_GICP",
@@ -83,7 +83,7 @@
             "registration_max_optimizer_iterations": 20,
             "registration_nn_search_method": "DIRECT7",
             "ndt_resolution": 0.5,
-            "verbose": true
+            "verbose": false
           }
         }
       }
@@ -105,7 +105,7 @@
         "model": "",
         "fitness_score_max_range": 100000.0,
         "fitness_score_threshold": 2.0,
-        "verbose": true
+        "verbose": false
       },
       "registration_loop_detector": {
         "registration_method_name": "FAST_GICP",
@@ -119,7 +119,7 @@
         "registration_max_optimizer_iterations": 20,
         "registration_nn_search_method": "DIRECT7",
         "ndt_resolution": 0.5,
-        "verbose": true
+        "verbose": false
       }
     }
   },
@@ -134,7 +134,7 @@
       "minimum_rotation_stddev": 0.05,
       "maximum_rotation_stddev": 0.2,
       "fitness_score_threshold": 2.5,
-      "verbose": true
+      "verbose": false
     },
     "backend_handler": {
       "first_graph_node_adaptive": true,
@@ -176,7 +176,7 @@
       "optimizer_iterations": 512,
       "maximum_unoptimized_keyframes": 2,
       "send_to_observers": true,
-      "verbose": true
+      "verbose": false
     }
   }
 }

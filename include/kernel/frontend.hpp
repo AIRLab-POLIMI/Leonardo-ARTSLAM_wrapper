@@ -33,7 +33,7 @@
 //#include <artslam_io/pointcloud_io.h>
 #include <map>
 #include <string>
-#include <controller/bridge_visualizer.hpp>
+//#include <controller/bridge_visualizer.hpp>
 
 namespace lots::slam::wrapper {
     using namespace lots::core::types;
