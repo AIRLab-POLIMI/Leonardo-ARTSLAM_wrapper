@@ -44,7 +44,7 @@ sudo make install
 git clone git@github.com:AIRLab-POLIMI/LOTS-SLAM.git
 cd LOTS-SLAM
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DKITTI_OFFLINE=OFF ..
+cmake -DCMAKE_BUILD_TYPE=Release -DAPPS=OFF ..
 make
 ```
 ```
