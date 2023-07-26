@@ -40,7 +40,7 @@ find_package(std_srvs REQUIRED)
 #find_package(Boost REQUIRED COMPONENTS program_options log log_setup)
 #include_directories(${Boost_INCLUDE_DIRS})
 
-# find_package(PCL REQUIRED)
+find_package(PCL REQUIRED)
 # include_directories(${PCL_INCLUDE_DIRS})
 # message("${PROJECT_NAME} - PCL version ${PCL_VERSION}")
 
@@ -59,6 +59,7 @@ find_library(LOTS_LIB_FOUND NAMES lotslam_lib PATHS "${ARTSLAM_LOCATION}/LOTS-SL
 include_directories("${ARTSLAM_LOCATION}/LOTS-SLAM/src")
 include_directories("${ARTSLAM_LOCATION}/LOTS-SLAM/include")
 
+include_directories(${PCL_INCLUDE_DIRS})
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
@@ -80,7 +81,8 @@ install(TARGETS
 
 install(DIRECTORY
     launch
-    DESTINATION share/${PROJECT_NAME}
+    config
+    DESTINATION share/${PROJECT_NAME}/
 )
 
 target_link_libraries(artslam_wrapper_node
@@ -89,6 +91,7 @@ target_link_libraries(artslam_wrapper_node
     ${LOTS_IO_FOUND}
     ${LOTS_UTILS_FOUND}
     ${LOTS_LIB_FOUND}
+    ${PCL_LIBRARIES}
 )
 
 ament_target_dependencies(artslam_wrapper_node
