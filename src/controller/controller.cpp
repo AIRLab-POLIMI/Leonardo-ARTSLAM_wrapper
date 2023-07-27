@@ -53,9 +53,13 @@ namespace lots::slam::wrapper {
         init_tf();
 
         tf_pub = node->create_wall_timer(100ms, std::bind(&Controller::timer_callback, this));
+        odom_pub = node->create_wall_timer(10ms, std::bind(&Controller::odom_timer_callback, this));
         service = node->create_service<std_srvs::srv::Empty>("offline_slam",
                                                              std::bind(&Controller::offline_slam, this, _1, _2));
-        markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 16);
+        markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 10);
+        state_pub = node->create_publisher<nav_msgs::msg::Odometry>("state_estimation", 10);
+        odom_sub = node->create_subscription<nav_msgs::msg::Odometry>("odom", 10,
+                                                                      std::bind(&Controller::odom_callback, this, _1));
 
 
         skeleton.start(node, config_file);
@@ -70,10 +74,13 @@ namespace lots::slam::wrapper {
      * @return true
      */
     bool Controller::offline_slam(const std::shared_ptr<std_srvs::srv::Empty::Request> req,
-            std::shared_ptr<std_srvs::srv::Empty::Response> res)
-    {
-         skeleton.backend.backend_handler->save_results(results_path);
-         return true;
+                                  std::shared_ptr<std_srvs::srv::Empty::Response> res) {
+        skeleton.backend.backend_handler->save_results(results_path);
+        return true;
+    }
+
+    void Controller::odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
+        last_speed = msg->twist.twist;
     }
 
     void Controller::init_tf() {
@@ -93,6 +100,18 @@ namespace lots::slam::wrapper {
             latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
             tf_broadcaster->sendTransform(latest_transform);
         }
+    }
+
+    void Controller::odom_timer_callback() {
+        nav_msgs::msg::Odometry odom_msg;
+        odom_msg.header.stamp = node->now();
+        odom_msg.header.frame_id = global_frame;
+        odom_msg.child_frame_id = "os_sensor";
+        odom_msg.pose.pose.position.x = latest_transform.transform.translation.x;
+        odom_msg.pose.pose.position.y = latest_transform.transform.translation.y;
+        odom_msg.pose.pose.position.z = latest_transform.transform.translation.z;
+        odom_msg.pose.pose.orientation = latest_transform.transform.rotation;
+        odom_msg.twist.twist = last_speed;
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
@@ -122,7 +141,7 @@ namespace lots::slam::wrapper {
 //        tf_broadcaster->sendTransform(latest_transform);
     }
 
-    void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr& slam_output, const std::string& id) {
+    void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
 
     }
 
