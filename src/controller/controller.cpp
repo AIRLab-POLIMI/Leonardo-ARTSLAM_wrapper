@@ -29,8 +29,7 @@ using namespace std::chrono_literals;
 
 namespace lots::slam::wrapper {
     // Initialize the node by reading the configuration file and setting the kernel.
-    Controller::Controller() : param_value(0) /*, bridge(node)*/
-    {
+    Controller::Controller() : param_value(0) {
         node->declare_parameter("value", rclcpp::ParameterValue(0.0));
         node->declare_parameter("configuration_file", rclcpp::ParameterValue(""));
         node->declare_parameter("results_path", rclcpp::ParameterValue(""));
@@ -49,6 +48,9 @@ namespace lots::slam::wrapper {
         node->get_parameter<uint>("delay", delay);
 
         tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(node);
+
+        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
         init_tf();
 
@@ -103,15 +105,28 @@ namespace lots::slam::wrapper {
     }
 
     void Controller::odom_timer_callback() {
-        nav_msgs::msg::Odometry odom_msg;
-        odom_msg.header.stamp = node->now();
-        odom_msg.header.frame_id = global_frame;
-        odom_msg.child_frame_id = "os_sensor";
-        odom_msg.pose.pose.position.x = latest_transform.transform.translation.x;
-        odom_msg.pose.pose.position.y = latest_transform.transform.translation.y;
-        odom_msg.pose.pose.position.z = latest_transform.transform.translation.z;
-        odom_msg.pose.pose.orientation = latest_transform.transform.rotation;
-        odom_msg.twist.twist = last_speed;
+        try {
+
+            geometry_msgs::msg::TransformStamped transformStamped;
+            transformStamped = tf_buffer_->lookupTransform(base_frame, global_frame,
+                                                           rclcpp::Time(0));
+            nav_msgs::msg::Odometry odom_msg;
+            odom_msg.header.stamp = node->now();
+            odom_msg.header.frame_id = global_frame;
+            odom_msg.child_frame_id = base_frame;
+            odom_msg.pose.pose.position.x = transformStamped.transform.translation.x;
+            odom_msg.pose.pose.position.y = transformStamped.transform.translation.y;
+            odom_msg.pose.pose.position.z = transformStamped.transform.translation.z;
+            odom_msg.pose.pose.orientation = transformStamped.transform.rotation;
+            odom_msg.twist.twist = last_speed;
+
+            state_pub->publish(odom_msg);
+
+        } catch (const tf2::TransformException &ex) {
+            RCLCPP_INFO(node->get_logger(), "Could not transform: %s", ex.what());
+            return;
+        }
+
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
@@ -176,8 +191,5 @@ namespace lots::slam::wrapper {
         }
 
         markers_pub->publish(markers);
-
     }
-
-
 }

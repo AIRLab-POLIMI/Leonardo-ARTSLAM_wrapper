@@ -54,8 +54,8 @@
 // TFs libraries
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_broadcaster.h>
-//#include <tf2_ros/transform_listener.h>
-//#include <tf2_eigen/tf2_eigen.hpp>
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 
 namespace lots::slam::wrapper {
 /**
@@ -76,6 +76,8 @@ namespace lots::slam::wrapper {
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr state_pub;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub;
 
+        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
         geometry_msgs::msg::TransformStamped latest_transform;
         geometry_msgs::msg::Twist last_speed;
