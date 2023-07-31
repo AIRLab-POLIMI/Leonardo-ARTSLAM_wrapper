@@ -1,17 +1,32 @@
-<?xml version="1.0"?>
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
-<launch>
 
-    <!-- arguments -->
-    <arg name="points_topic" default="points_raw" />
-    <arg name="imu_topic" default="imu_correct" />
+def generate_launch_description():
 
-    <!-- transformation between lidar and base_link -->
-    <node pkg="tf" type="static_transform_publisher" name="odom2map_publisher" args="0 0 0 0 0 0 map odom 1000" />
-    <node pkg="tf" type="static_transform_publisher" name="base2odom_publisher" args="0 0 0 0 0 0 odom base_link 1000" />
-    <node pkg="tf" type="static_transform_publisher" name="lidar2base_publisher" args="0 0 0 0 0 0 base_link velodyne 1000" />
-    <node pkg="tf" type="static_transform_publisher" name="imu2base_publisher" args="-8.086759e-01 3.195559e-01 -7.997231e-01 -0.0007854 -0.0020244 0.0148251 base_link imu_enu_link 1000" />
+    ld = LaunchDescription()
 
-    <!--node type="rviz" name="rviz" pkg="rviz" args="-d $(find artslam_wrapper)/rviz/basic_visualization.rviz" /-->
+    config_file = os.path.join(
+      get_package_share_directory('artslam_wrapper'),
+      'config',
+      'KITTI.json'
+      )
 
-</launch>
+    artslam_wrapper_node = Node(
+        package='artslam_wrapper',
+        executable='artslam_wrapper_node',
+        name='wrapper_controller',
+        output='screen',
+        parameters=[{
+            'configuration_file': config_file,
+            'results_path': '/LOTS/results/',
+            'imu_topic': '/ouster/imu'
+        }],
+        # prefix=['xterm -e gdb -q -ex run --args']
+    )
+
+    ld.add_action(artslam_wrapper_node)
+
+    return ld
