@@ -71,16 +71,16 @@ namespace lots::slam::wrapper {
         std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("offline_slam_server");
         rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service;
         rclcpp::TimerBase::SharedPtr tf_pub;
-        rclcpp::TimerBase::SharedPtr odom_pub;
+//        rclcpp::TimerBase::SharedPtr odom_pub;
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr markers_pub;
-        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr state_pub;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub;
+//        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr state_pub;
+//        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub;
 
-        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
-        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+//        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+//        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
         geometry_msgs::msg::TransformStamped latest_transform;
-        geometry_msgs::msg::Twist last_speed;
+//        geometry_msgs::msg::Twist last_speed;
         uint delay;
 
         // general params
@@ -112,8 +112,8 @@ namespace lots::slam::wrapper {
 
         void init_tf();
         void timer_callback();
-        void odom_timer_callback();
-        void odom_callback(nav_msgs::msg::Odometry::SharedPtr msg);
+//        void odom_timer_callback();
+//        void odom_callback(nav_msgs::msg::Odometry::SharedPtr msg);
         void show_markers(std::vector<EigIsometry3d> poses);
     };
 }
