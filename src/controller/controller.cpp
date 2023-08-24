@@ -99,10 +99,11 @@ namespace lots::slam::wrapper {
     }
 
     void Controller::timer_callback() {
-//        if (!latest_transform.header.frame_id.empty()) {
-////            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
-//            tf_broadcaster->sendTransform(latest_transform);
-//        }
+        if (!latest_transform.header.frame_id.empty()) {
+//            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
+            latest_transform.header.stamp = node->now();
+            tf_broadcaster->sendTransform(latest_transform);
+        }
     }
 
 //    void Controller::odom_timer_callback() {
@@ -136,9 +137,8 @@ namespace lots::slam::wrapper {
         latest_transform.header.frame_id = global_frame;
         latest_transform.child_frame_id = odom_frame;
 
-        auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
-        latest_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
-                                                     point_cloud_stamp % 1000000000ull);
+//        latest_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
+//                                                     point_cloud_stamp % 1000000000ull);
 
         tf2::Quaternion q_;
         tf2::Matrix3x3(slam_output->map_to_odom_->rotation().coeff(0, 0),
@@ -157,11 +157,12 @@ namespace lots::slam::wrapper {
         latest_transform.transform.translation.y = slam_output->map_to_odom_->translation().y();
         latest_transform.transform.translation.z = slam_output->map_to_odom_->translation().z();
 
-        tf_broadcaster->sendTransform(latest_transform);
+//        tf_broadcaster->sendTransform(latest_transform);
 
         sensor_msgs::msg::PointCloud2 pointcloud_msg;
         pcl::toROSMsg(*slam_output->last_point_cloud_.value(), pointcloud_msg);
         pointcloud_msg.header.frame_id = global_frame;
+        auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
         pointcloud_msg.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
                                                    point_cloud_stamp % 1000000000ull);
         scan_pub->publish(pointcloud_msg);
