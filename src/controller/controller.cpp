@@ -157,15 +157,17 @@ namespace lots::slam::wrapper {
         latest_transform.transform.translation.y = slam_output->map_to_odom_->translation().y();
         latest_transform.transform.translation.z = slam_output->map_to_odom_->translation().z();
 
-//        tf_broadcaster->sendTransform(latest_transform);
-
         sensor_msgs::msg::PointCloud2 pointcloud_msg;
         pcl::toROSMsg(*slam_output->last_point_cloud_.value(), pointcloud_msg);
         pointcloud_msg.header.frame_id = global_frame;
         auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
         pointcloud_msg.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
                                                    point_cloud_stamp % 1000000000ull);
-        scan_pub->publish(pointcloud_msg);
+        sensor_msgs::msg::PointCloud2 transformed_cloud;
+        tf2::doTransform(pointcloud_msg, transformed_cloud, latest_transform);
+
+//        tf_broadcaster->sendTransform(latest_transform);
+        scan_pub->publish(transformed_cloud);
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
