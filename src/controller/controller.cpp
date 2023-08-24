@@ -59,6 +59,7 @@ namespace lots::slam::wrapper {
         service = node->create_service<std_srvs::srv::Empty>("offline_slam",
                                                              std::bind(&Controller::offline_slam, this, _1, _2));
         markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 10);
+        scan_pub = node->create_publisher<sensor_msgs::msg::PointCloud2>("registered_scan", 5);
 //        state_pub = node->create_publisher<nav_msgs::msg::Odometry>("state_estimation", 10);
 //        odom_sub = node->create_subscription<nav_msgs::msg::Odometry>("odom", 10,
 //                                                                      std::bind(&Controller::odom_callback, this, _1));
@@ -98,10 +99,10 @@ namespace lots::slam::wrapper {
     }
 
     void Controller::timer_callback() {
-        if (!latest_transform.header.frame_id.empty()) {
-            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
-            tf_broadcaster->sendTransform(latest_transform);
-        }
+//        if (!latest_transform.header.frame_id.empty()) {
+////            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
+//            tf_broadcaster->sendTransform(latest_transform);
+//        }
     }
 
 //    void Controller::odom_timer_callback() {
@@ -135,6 +136,10 @@ namespace lots::slam::wrapper {
         latest_transform.header.frame_id = global_frame;
         latest_transform.child_frame_id = odom_frame;
 
+        auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
+        latest_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
+                                                     point_cloud_stamp % 1000000000ull);
+
         tf2::Quaternion q_;
         tf2::Matrix3x3(slam_output->map_to_odom_->rotation().coeff(0, 0),
                        slam_output->map_to_odom_->rotation().coeff(0, 1),
@@ -151,9 +156,15 @@ namespace lots::slam::wrapper {
         latest_transform.transform.translation.x = slam_output->map_to_odom_->translation().x();
         latest_transform.transform.translation.y = slam_output->map_to_odom_->translation().y();
         latest_transform.transform.translation.z = slam_output->map_to_odom_->translation().z();
-//        latest_transform.header.stamp = node->now();
 
-//        tf_broadcaster->sendTransform(latest_transform);
+        tf_broadcaster->sendTransform(latest_transform);
+
+        sensor_msgs::msg::PointCloud2 pointcloud_msg;
+        pcl::toROSMsg(*slam_output->last_point_cloud_.value(), pointcloud_msg);
+        pointcloud_msg.header.frame_id = global_frame;
+        pointcloud_msg.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
+                                                   point_cloud_stamp % 1000000000ull);
+        scan_pub->publish(pointcloud_msg);
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {

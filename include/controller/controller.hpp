@@ -73,6 +73,7 @@ namespace lots::slam::wrapper {
         rclcpp::TimerBase::SharedPtr tf_pub;
 //        rclcpp::TimerBase::SharedPtr odom_pub;
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr markers_pub;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr scan_pub;
 //        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr state_pub;
 //        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub;
 
