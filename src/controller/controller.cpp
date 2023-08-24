@@ -24,6 +24,8 @@
 #include <filesystem>
 #include <execution>
 
+#include "tf2_sensor_msgs/tf2_sensor_msgs.h"
+
 using namespace std::placeholders;
 using namespace std::chrono_literals;
 
