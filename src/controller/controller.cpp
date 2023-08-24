@@ -51,21 +51,12 @@ namespace lots::slam::wrapper {
 
         tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(node);
 
-//        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
-//        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
         init_tf();
 
         tf_pub = node->create_wall_timer(100ms, std::bind(&Controller::timer_callback, this));
-//        odom_pub = node->create_wall_timer(10ms, std::bind(&Controller::odom_timer_callback, this));
         service = node->create_service<std_srvs::srv::Empty>("offline_slam",
                                                              std::bind(&Controller::offline_slam, this, _1, _2));
         markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 10);
-        scan_pub = node->create_publisher<sensor_msgs::msg::PointCloud2>("registered_scan", 5);
-//        state_pub = node->create_publisher<nav_msgs::msg::Odometry>("state_estimation", 10);
-//        odom_sub = node->create_subscription<nav_msgs::msg::Odometry>("odom", 10,
-//                                                                      std::bind(&Controller::odom_callback, this, _1));
-
 
         skeleton.start(node, config_file);
         skeleton.registerObserver(this);
@@ -84,10 +75,6 @@ namespace lots::slam::wrapper {
         return true;
     }
 
-//    void Controller::odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
-//        last_speed = msg->twist.twist;
-//    }
-
     void Controller::init_tf() {
         // Initial TF configuration message map->odom
         geometry_msgs::msg::TransformStamped init_msg;
@@ -103,44 +90,16 @@ namespace lots::slam::wrapper {
     void Controller::timer_callback() {
         if (!latest_transform.header.frame_id.empty()) {
 //            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
-            latest_transform.header.stamp = node->now();
-            tf_broadcaster->sendTransform(latest_transform);
+//            latest_transform.header.stamp = node->now();
+//            tf_broadcaster->sendTransform(latest_transform);
         }
     }
-
-//    void Controller::odom_timer_callback() {
-//        try {
-//
-//            geometry_msgs::msg::TransformStamped transformStamped;
-//            transformStamped = tf_buffer_->lookupTransform(base_frame, global_frame,
-//                                                           rclcpp::Time(0));
-//            nav_msgs::msg::Odometry odom_msg;
-//            odom_msg.header.stamp = node->now();
-//            odom_msg.header.frame_id = global_frame;
-//            odom_msg.child_frame_id = base_frame;
-//            odom_msg.pose.pose.position.x = transformStamped.transform.translation.x;
-//            odom_msg.pose.pose.position.y = transformStamped.transform.translation.y;
-//            odom_msg.pose.pose.position.z = transformStamped.transform.translation.z;
-//            odom_msg.pose.pose.orientation = transformStamped.transform.rotation;
-//            odom_msg.twist.twist = last_speed;
-//
-//            state_pub->publish(odom_msg);
-//
-//        } catch (const tf2::TransformException &ex) {
-//            RCLCPP_INFO(node->get_logger(), "Could not transform: %s", ex.what());
-//            return;
-//        }
-//
-//    }
-
+    
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
         show_markers(slam_output->poses_.value());
 
         latest_transform.header.frame_id = global_frame;
         latest_transform.child_frame_id = odom_frame;
-
-//        latest_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
-//                                                     point_cloud_stamp % 1000000000ull);
 
         tf2::Quaternion q_;
         tf2::Matrix3x3(slam_output->map_to_odom_->rotation().coeff(0, 0),
@@ -158,18 +117,9 @@ namespace lots::slam::wrapper {
         latest_transform.transform.translation.x = slam_output->map_to_odom_->translation().x();
         latest_transform.transform.translation.y = slam_output->map_to_odom_->translation().y();
         latest_transform.transform.translation.z = slam_output->map_to_odom_->translation().z();
+        latest_transform.header.stamp = node->now();
 
-        sensor_msgs::msg::PointCloud2 pointcloud_msg;
-        pcl::toROSMsg(*slam_output->last_point_cloud_.value(), pointcloud_msg);
-        pointcloud_msg.header.frame_id = global_frame;
-        auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
-        pointcloud_msg.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
-                                                   point_cloud_stamp % 1000000000ull);
-        sensor_msgs::msg::PointCloud2 transformed_cloud;
-        tf2::doTransform(pointcloud_msg, transformed_cloud, latest_transform);
-
-//        tf_broadcaster->sendTransform(latest_transform);
-        scan_pub->publish(transformed_cloud);
+        tf_broadcaster->sendTransform(latest_transform);
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
