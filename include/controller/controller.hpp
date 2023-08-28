@@ -72,6 +72,7 @@ namespace lots::slam::wrapper {
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
         geometry_msgs::msg::TransformStamped latest_transform;
         uint delay;
+        rclcpp::Time last_time;
 
         // general params
         double param_value;

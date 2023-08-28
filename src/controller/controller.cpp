@@ -53,7 +53,7 @@ namespace lots::slam::wrapper {
 
         init_tf();
 
-        tf_pub = node->create_wall_timer(100ms, std::bind(&Controller::timer_callback, this));
+        tf_pub = node->create_wall_timer(200ms, std::bind(&Controller::timer_callback, this));
         service = node->create_service<std_srvs::srv::Empty>("offline_slam",
                                                              std::bind(&Controller::offline_slam, this, _1, _2));
         markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 10);
@@ -89,9 +89,10 @@ namespace lots::slam::wrapper {
 
     void Controller::timer_callback() {
         if (!latest_transform.header.frame_id.empty()) {
-//            latest_transform.header.stamp = node->now() + rclcpp::Duration(0, delay);
-//            latest_transform.header.stamp = node->now();
-//            tf_broadcaster->sendTransform(latest_transform);
+            latest_transform.header.stamp = rclcpp::Time(latest_transform.header.stamp) + (node->now() - last_time);
+
+            tf_broadcaster->sendTransform(latest_transform);
+            last_time = node->now();
         }
     }
     
@@ -117,9 +118,12 @@ namespace lots::slam::wrapper {
         latest_transform.transform.translation.x = slam_output->map_to_odom_->translation().x();
         latest_transform.transform.translation.y = slam_output->map_to_odom_->translation().y();
         latest_transform.transform.translation.z = slam_output->map_to_odom_->translation().z();
-        latest_transform.header.stamp = node->now();
+        auto point_cloud_stamp = slam_output->last_point_cloud_.value()->header.stamp;
+        latest_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
+                                                     point_cloud_stamp % 1000000000ull);
 
         tf_broadcaster->sendTransform(latest_transform);
+        last_time = node->now();
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
