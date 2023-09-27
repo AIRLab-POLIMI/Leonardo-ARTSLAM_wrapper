@@ -176,6 +176,14 @@ namespace lots::slam::wrapper {
                 std::cout << "[BackendHandler] Registered to the GroundDetector!" << std::endl;
             }
         };
+
+        void setController(OdometryObserver *observer) {
+            if (frontend.modules.find("tracker") != frontend.modules.end()) {
+                if (_sensor_type == LIDAR)
+                    (static_cast<LiDARTracker *>(frontend.modules["tracker"].get()))->register_odometry_observer(observer);
+                std::cout << "[Controller] Registered to the Tracker!" << std::endl;
+            }
+        }
     };
 }
 
