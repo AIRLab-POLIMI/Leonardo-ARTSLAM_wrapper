@@ -56,6 +56,7 @@ namespace lots::slam::wrapper {
         void addTracker(std::string config_file, SensorType sensor, int id);
 
         void addGroundDetector(std::string config_file, SensorType sensor, int id);
+
     };
 }
 
