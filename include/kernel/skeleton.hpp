@@ -66,6 +66,7 @@ namespace lots::slam::wrapper {
 //        void start(std::shared_ptr<rclcpp::Node> n, BridgeVisualizer *bridge, const std::string& config_file);
         void start(std::shared_ptr<rclcpp::Node> n, const std::string& config_file);
         void registerObserver(SLAMOutputObserver *observer);
+        void registerOdomObserver(OdometryObserver* observer);
 
         void addLoopDetector(int id) { loop_detector_list.emplace_back(id); };
     };
