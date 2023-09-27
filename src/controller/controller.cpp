@@ -25,6 +25,11 @@
 #include <execution>
 
 #include "tf2_sensor_msgs/tf2_sensor_msgs.h"
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/conversions.h>
+#include <pcl/io/pcd_io.h>
 
 using namespace std::placeholders;
 using namespace std::chrono_literals;
@@ -35,7 +40,7 @@ namespace lots::slam::wrapper {
         node->declare_parameter("value", rclcpp::ParameterValue(0.0));
         node->declare_parameter("configuration_file", rclcpp::ParameterValue(""));
         node->declare_parameter("results_path", rclcpp::ParameterValue(""));
-        node->declare_parameter("base_frame", rclcpp::ParameterValue("base_link"));
+        node->declare_parameter("base_frame", rclcpp::ParameterValue("UGV_base_link"));
         node->declare_parameter("global_frame", rclcpp::ParameterValue("map"));
         node->declare_parameter("odom_frame", rclcpp::ParameterValue("odom"));
         node->declare_parameter("imu_topic", rclcpp::ParameterValue(""));
@@ -50,6 +55,7 @@ namespace lots::slam::wrapper {
         node->get_parameter<uint>("delay", delay);
 
         tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(node);
+        tf_odom_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(node);
 
         init_tf();
 
@@ -57,9 +63,11 @@ namespace lots::slam::wrapper {
         service = node->create_service<std_srvs::srv::Empty>("offline_slam",
                                                              std::bind(&Controller::offline_slam, this, _1, _2));
         markers_pub = node->create_publisher<visualization_msgs::msg::MarkerArray>("markers", 10);
+        map_pub = node->create_publisher<sensor_msgs::msg::PointCloud2>("artslam_map", 1);
 
         skeleton.start(node, config_file);
         skeleton.registerObserver(this);
+        skeleton.registerOdomObserver(this);
     }
 
     /**
@@ -98,6 +106,11 @@ namespace lots::slam::wrapper {
     
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::Ptr &slam_output, const std::string &id) {
         show_markers(slam_output->poses_.value());
+        // show_map(slam_output->map_.value());
+        if (slam_output->map_.has_value()) {
+            RCLCPP_INFO(node->get_logger(), "HERE IS THE MAP");
+            show_map(slam_output->map_.value());
+        }
 
         latest_transform.header.frame_id = global_frame;
         latest_transform.child_frame_id = odom_frame;
@@ -127,6 +140,38 @@ namespace lots::slam::wrapper {
     }
 
     void Controller::update_slam_output_observer(const SLAMOutput_MSG::ConstPtr &slam_output, const std::string &id) {
+
+    }
+
+    void Controller::update_odometry_observer(Odometry_MSG::Ptr odometry_msg, const std::string& id) {
+        odom_transform.header.frame_id = odom_frame;
+        odom_transform.child_frame_id = base_frame;
+
+        tf2::Quaternion q_;
+        tf2::Matrix3x3(odometry_msg->value_(0, 0),
+                       odometry_msg->value_(0, 1),
+                       odometry_msg->value_(0, 2),
+                       odometry_msg->value_(1, 0),
+                       odometry_msg->value_(1, 1),
+                       odometry_msg->value_(1, 2),
+                       odometry_msg->value_(2, 0),
+                       odometry_msg->value_(2, 1),
+                       odometry_msg->value_(2, 2)).getRotation(q_);
+
+        tf2::convert(q_, odom_transform.transform.rotation);
+
+        odom_transform.transform.translation.x = odometry_msg->value_(0,3);
+        odom_transform.transform.translation.y = odometry_msg->value_(1,3);
+        odom_transform.transform.translation.z = odometry_msg->value_(2,3);
+        auto point_cloud_stamp = odometry_msg->header_.timestamp_;
+        odom_transform.header.stamp = rclcpp::Time(point_cloud_stamp / 1000000000ull,
+                                                     point_cloud_stamp % 1000000000ull);
+
+        tf_odom_broadcaster->sendTransform(odom_transform);
+
+    }
+    
+    void Controller::update_odometry_observer(Odometry_MSG::ConstPtr odometry_msg, const std::string& id) {
 
     }
 
@@ -161,5 +206,15 @@ namespace lots::slam::wrapper {
         }
 
         markers_pub->publish(markers);
+    }
+
+    void Controller::show_map(pcl::PointCloud<Point3I>::ConstPtr map) {
+        sensor_msgs::msg::PointCloud2 pointcloud_map;
+        //std::make_shared<sensor_msgs::msg::PointCloud2>();
+
+        pcl::toROSMsg(*map, pointcloud_map);
+        pointcloud_map.header.frame_id = "map";
+
+        map_pub->publish(pointcloud_map);
     }
 }
