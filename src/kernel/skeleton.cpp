@@ -37,6 +37,10 @@ namespace lots::slam::wrapper
                 backend.backend_handler->register_slam_output_observer(observer);
             }
 
+            void Skeleton::registerOdomObserver(OdometryObserver* observer) {
+                lidar_list[0].setController(observer);
+            }
+
             /**
              * Initialize kernel modules (Back-End + Loop Detector + Front-End).
              *
