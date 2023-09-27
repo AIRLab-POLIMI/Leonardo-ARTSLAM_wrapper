@@ -47,6 +47,7 @@
 #include <std_srvs/srv/empty.hpp>
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 
 // TFs libraries
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -62,15 +63,18 @@ namespace lots::slam::wrapper {
  * ARTSLAM kernel with the desired sensors by allocating front-ends and also the desired loop detectors.
  * The controller is also in charge to manage the bridge-visualizer.
  */
-    class Controller : public SLAMOutputObserver {
+    class Controller : public SLAMOutputObserver, OdometryObserver {
     private:
         /* Attributes ----------------------------------------------------------------------------------- */
         std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("offline_slam_server");
         rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service;
         rclcpp::TimerBase::SharedPtr tf_pub;
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr markers_pub;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_pub;
         std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
+        std::unique_ptr<tf2_ros::TransformBroadcaster> tf_odom_broadcaster;
         geometry_msgs::msg::TransformStamped latest_transform;
+        geometry_msgs::msg::TransformStamped odom_transform;
         uint delay;
         rclcpp::Time last_time;
 
@@ -99,9 +103,13 @@ namespace lots::slam::wrapper {
         void update_slam_output_observer(const SLAMOutput_MSG::Ptr& slam_output, const std::string& id) override;
         void update_slam_output_observer(const SLAMOutput_MSG::ConstPtr& slam_output, const std::string& id) override;
 
+        void update_odometry_observer(Odometry_MSG::Ptr odometry_msg, const std::string& id) override;
+        void update_odometry_observer(Odometry_MSG::ConstPtr odometry_msg, const std::string& id) override;
+
         void init_tf();
         void timer_callback();
         void show_markers(std::vector<EigIsometry3d> poses);
+        void show_map(pcl::PointCloud<Point3I>::ConstPtr map);
     };
 }
 
